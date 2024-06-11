@@ -1,9 +1,0 @@
-[submodule "SubModules/SDL"]
-	path = SubModules/SDL
-	url = https://github.com/libsdl-org/SDL.git
-[submodule "SubModules/SDL_ttf"]
-	path = SubModules/SDL_ttf
-	url = https://github.com/libsdl-org/SDL_ttf.git
-[submodule "SubModules/spdlog"]
-	path = SubModules/spdlog
-	url = https://github.com/gabime/spdlog.git
