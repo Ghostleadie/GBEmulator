@@ -45,6 +45,15 @@ bool cartridgeLoader::loadCartridge(char* m_cartridge)
     return false;
 }
 
+void cartridgeLoader::writeToCartridge(uint16_t address, uint8_t value)
+{
+}
+
+uint8_t cartridgeLoader::readCartridge(uint16_t address)
+{
+    return ctx.romData[address];
+}
+
 std::string cartridgeLoader::getLicenseeName(int code)
 {
     switch (code) {
