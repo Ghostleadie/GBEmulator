@@ -7,6 +7,7 @@
 #include "backends/imgui_impl_sdlrenderer2.h"
 #include <stdio.h>
 #include "SDL.h"
+//#include "log/Log.h"
 
 #if !SDL_VERSION_ATLEAST(2,0,17)
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
@@ -21,6 +22,8 @@ int main(int, char**)
         printf("Error: %s\n", SDL_GetError());
         return -1;
     }
+
+    Log::Init();
 
     // From 2.0.18: Enable native IME.
 #ifdef SDL_HINT_IME_SHOW_UI

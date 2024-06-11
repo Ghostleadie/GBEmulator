@@ -22,6 +22,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Debug>")
 
 
+
 # Include sub-projects.
 add_subdirectory ("libs")
 add_subdirectory ("src")
