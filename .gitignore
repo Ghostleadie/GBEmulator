@@ -1,6 +1,12 @@
 # Directories
 .vs/
 Binaries/
+/out
+bin/
+build/
+/.vs
+.idea/
+CMakeSettings.json
 
 # Files
 *.vcxproj
