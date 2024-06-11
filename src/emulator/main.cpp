@@ -1,11 +1,12 @@
 ﻿// GBEmulator.cpp : Defines the entry point for the application.
 //
 
-#include "GBEmulator.h"
-#include "backends/imgui_impl_sdl2.h"
-#include "imgui.h"
-#include "backends/imgui_impl_sdlrenderer2.h"
+#include "main.h"
 #include <stdio.h>
+#include "backends/imgui_impl_sdl2.h"
+#include "backends/imgui_impl_sdlrenderer2.h"
+#include "emulator.h"
+#include "imgui.h"
 #include "SDL.h"
 //#include "log/Log.h"
 
@@ -13,8 +14,15 @@
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
+emulation emu;
+
+int main(int argc, char** argv) {
+    Log::Init();
+    return emu.runEmulator(argc, argv);
+}
+
 // Main code
-int main(int, char**)
+/*int main(int, char**)
 {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)

@@ -9,6 +9,7 @@ FetchContent_Declare(
     GIT_TAG        v1.14.1
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
+    #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/spdlog
 )
 
 message("Fetching spdlog")
@@ -22,6 +23,7 @@ FetchContent_Declare(
     GIT_TAG        v1.90.7
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
+    #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/imgui
 )
 
 FetchContent_GetProperties(imgui)
@@ -74,6 +76,7 @@ FetchContent_Declare(
     GIT_TAG        3.3.8
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
+    #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/glfw
 )
 message("Fetching glfw")
 FetchContent_MakeAvailable(glfw)
@@ -85,6 +88,7 @@ FetchContent_Declare(
   GIT_REPOSITORY "https://github.com/libsdl-org/SDL.git"
   GIT_TAG release-2.30.3
   GIT_PROGRESS   TRUE
+  #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/SDL2
 )
 FetchContent_GetProperties(SDL2)
 if(NOT sdl2_POPULATED)
@@ -93,7 +97,6 @@ if(NOT sdl2_POPULATED)
   message(STATUS "Catch binary dir: ${sdl2_BINARY_DIR}")
   add_subdirectory(${sdl2_SOURCE_DIR} ${sdl2_BINARY_DIR})
 endif()
-
 
 
 #set(SDL2_LIBRARY "${CMAKE_SOURCE_DIR}/include/sdl/lib")
@@ -109,6 +112,27 @@ set(SDL2_DISABLE_SDL2MAIN ON)
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
 
 FetchContent_MakeAvailable(SDL2)
+
+#----------------------------------------------------------------------
+
+FetchContent_Declare(
+  SDL2_ttf
+  GIT_REPOSITORY "https://github.com/libsdl-org/SDL_ttf.git"
+  GIT_TAG  release-2.22.0
+  GIT_PROGRESS   TRUE
+  #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/SDL2_ttf
+)
+message("Fetching SDL_ttf")
+
+FetchContent_MakeAvailable(SDL2_ttf)
+#FetchContent_GetProperties(SDL2)
+#if(NOT sdl2_POPULATED)
+#  FetchContent_Populate(SDL2)
+#  message(STATUS "Catch source dir: ${sdl2_SOURCE_DIR}")
+#  message(STATUS "Catch binary dir: ${sdl2_BINARY_DIR}")
+#  add_subdirectory(${sdl2_SOURCE_DIR} ${sdl2_BINARY_DIR})
+#endif()
+
 
 #list(APPEND SDL2_LIBRARIES ${PROJECT_SOURCE_DIR}/build/Debug/SDL2maind.lib)
 #list(APPEND SDL2_LIBRARIES ${PROJECT_SOURCE_DIR}/build/Debug/SDL2-staticd.lib)
