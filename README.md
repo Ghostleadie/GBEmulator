@@ -1,1 +1,1 @@
-# SDL2_Template
+# GameBoy Emulator
