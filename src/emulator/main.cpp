@@ -14,10 +14,12 @@
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
-emulation emu;
+
 
 int main(int argc, char** argv) {
+    emulation emu;
     Log::Init();
+    emu.initEmulator();
     return emu.runEmulator(argc, argv);
 }
 

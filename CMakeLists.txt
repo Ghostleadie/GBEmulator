@@ -16,6 +16,8 @@ project (
 	LANGUAGES CXX
 )
 
+#set_property(TARGET GBEmulator PROPERTY CXX_STANDARD 20)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")

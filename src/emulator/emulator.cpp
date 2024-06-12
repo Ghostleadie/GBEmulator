@@ -1,5 +1,18 @@
 #include "emulator.h"
 
+std::shared_ptr <emulator> m_emulator;
+std::shared_ptr <cartridgeLoader> m_loader;
+std::shared_ptr <cpu> m_cpu;
+
+void emulation::initEmulator()
+{
+    m_loader = std::shared_ptr <cartridgeLoader>(new cartridgeLoader());
+    m_instructions = std::shared_ptr <instructions>(new instructions());
+    m_bus = std::shared_ptr <bus>(new bus(m_loader));
+    m_cpu = std::shared_ptr <cpu>(new cpu(m_bus,m_instructions,m_loader));
+  
+}
+
 int emulation::runEmulator(int argc, char** argv)
 {
     if (argc < 2) {
@@ -7,7 +20,7 @@ int emulation::runEmulator(int argc, char** argv)
         return -1;
     }
     
-    if (!m_loader.loadCartridge(argv[1])) {
+    if (!m_loader->loadCartridge(argv[1])) {
         GBE_WARN("Failed to load ROM file: %s\n", argv[1]);
         return -2;
     }
@@ -15,7 +28,7 @@ int emulation::runEmulator(int argc, char** argv)
     SDL_Init(SDL_INIT_VIDEO);
     printf("SDL INIT\n");
 
-    m_cpu.init();
+    m_cpu->init();
 
     m_emulator.running = true;
     m_emulator.paused = false;
@@ -27,7 +40,7 @@ int emulation::runEmulator(int argc, char** argv)
             continue;
         }
 
-        if (!m_cpu.step()) {
+        if (!m_cpu->step()) {
             printf("CPU Stopped\n");
             return -3;
         }
@@ -43,3 +56,14 @@ void emulation::delay(uint32_t ms)
 	SDL_Delay(ms);	
 }
 
+void emulation::cycles(int cpuCycles)
+{
+
+}
+
+emulator::emulator()
+{
+    bool paused = false;
+    bool running = true;
+    uint64_t ticks = 0;
+}

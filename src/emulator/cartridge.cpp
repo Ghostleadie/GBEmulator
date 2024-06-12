@@ -7,7 +7,7 @@
 bool cartridgeLoader::loadCartridge(char* m_cartridge)
 {
     GBE_INFO(std::string(m_cartridge));
-
+    snprintf(ctx.filename, sizeof(ctx.filename), "%s", m_cartridge);
     std::ifstream cartridgeFile;
     cartridgeFile.open(m_cartridge, std::ifstream::binary);
 
@@ -42,7 +42,7 @@ bool cartridgeLoader::loadCartridge(char* m_cartridge)
 
     GBE_INFO("\t Checksum : " + std::to_string(ctx.header->checksum) + "(" + ((x & 0xFF) ? "PASSED" : "FAILED") + ")");
 
-    return false;
+    return true;
 }
 
 void cartridgeLoader::writeToCartridge(uint16_t address, uint8_t value)
