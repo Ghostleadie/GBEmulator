@@ -48,9 +48,14 @@ protected:
 	void execute();
 	uint16_t cpuReadRegistry(registryType rt);
 	uint16_t reverse(uint16_t n);
+	static bool checkCondition(cpuContext* ctx);
+	void setFlags(cpuContext* ctx, char z, char n, char h, char c);
 private:
 	cpuContext ctx;
 	std::shared_ptr <bus> m_bus;
 	std::shared_ptr <instructions> m_instructions;
 	std::shared_ptr <cartridgeLoader> m_loader;
 };
+
+#define CPU_FLAG_Z BIT(ctx->registers.f, 7)
+#define CPU_FLAG_C BIT(ctx->registers.f, 4)

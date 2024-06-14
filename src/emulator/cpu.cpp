@@ -153,3 +153,38 @@ uint16_t cpu::reverse(uint16_t n)
 {
 	return ((n & 0xFF00) >> 8) | ((n & 0x00FF) << 8);
 }
+
+bool cpu::checkCondition(cpuContext* ctx)
+{
+	bool z = CPU_FLAG_Z;
+	bool c = CPU_FLAG_C;
+
+	switch (ctx->currentInstruction.cond) {
+	case CT_NONE: return true;
+	case CT_C: return c;
+	case CT_NC: return !c;
+	case CT_Z: return z;
+	case CT_NZ: return !z;
+	}
+
+	return false;
+}
+
+void cpu::setFlags(cpuContext* ctx, char z, char n, char h, char c)
+{
+	if (z != -1) {
+		BIT_SET(ctx->registers.f, 7, z);
+	}
+
+	if (n != -1) {
+		BIT_SET(ctx->registers.f, 6, n);
+	}
+
+	if (h != -1) {
+		BIT_SET(ctx->registers.f, 5, h);
+	}
+
+	if (c != -1) {
+		BIT_SET(ctx->registers.f, 4, c);
+	}
+}
