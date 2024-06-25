@@ -110,8 +110,8 @@ struct instruction {
     conditionType cond;
     uint8_t param;
 
-    instruction() {}
-    instruction(std::string m_name, instructionType m_type, addressMode m_mode, registryType m_reg1 = registryType::RT_NONE, registryType m_reg2 = registryType::RT_NONE, conditionType m_cond = conditionType::CT_NONE, uint8_t m_param = 0);
+    instruction();
+    instruction(std::string m_name, instructionType m_type, addressMode m_mode = addressMode::AM_IMP, registryType m_reg1 = registryType::RT_NONE, registryType m_reg2 = registryType::RT_NONE, conditionType m_cond = conditionType::CT_NONE, uint8_t m_param = 0);
 };
 
 class instructions
