@@ -33,52 +33,128 @@ instruction instructions::instructionByOpcode(uint8_t opcode)
         return instruction(std::string("0x01"), IN_LD, AM_R_D16, RT_BC);
     case 0x02:
         return instruction(std::string("0x02"), IN_LD, AM_MR_R, RT_BC, RT_A);
+    case 0x03:
+        return instruction(std::string("0x03"), IN_INC, AM_R, RT_BC);
+    case 0x04:
+        return instruction(std::string("0x04"), IN_INC, AM_R, RT_B);
     case 0x05:
         return instruction(std::string("0x05"), IN_DEC, AM_R, RT_B);
     case 0x06:
         return instruction(std::string("0x06"), IN_LD, AM_R_D8, RT_B);
+    case 0x07:
+        return instruction(std::string("0x07"), IN_RLCA);
     case 0x08:
-        return instruction(std::string("0x08"), IN_LD, AM_A16_R, RT_NONE, RT_SP);
+        return instruction(std::string("0x08"), IN_LD, AM_D16_R, RT_NONE, RT_SP);
+    case 0x09:
+        return instruction(std::string("0x09"), IN_ADD, AM_R_R, RT_HL, RT_BC);
     case 0x0A:
         return instruction(std::string("0x0A"), IN_LD, AM_R_MR, RT_A, RT_BC);
+    case 0x0B:
+        return instruction(std::string("0x0B"), IN_DEC, AM_R, RT_BC);
+    case 0x0C:
+        return instruction(std::string("0x0C"), IN_INC, AM_R, RT_C);
+    case 0x0D:
+        return instruction(std::string("0x0D"), IN_DEC, AM_R, RT_C);
     case 0x0E:
         return instruction(std::string("0x0E"), IN_LD, AM_R_D8, RT_C);
+    case 0x0F:
+        return instruction(std::string("0x0F"), IN_RRCA);
+    case 0x10:
+        return instruction(std::string("0x10"), IN_STOP);
     case 0x11:
         return instruction(std::string("0x11"), IN_LD, AM_R_D16, RT_DE);
     case 0x12:
         return instruction(std::string("0x12"), IN_LD, AM_MR_R, RT_DE, RT_A);
+    case 0x13:
+        return instruction(std::string("0x13"), IN_INC, AM_R, RT_DE);
+    case 0x14:
+        return instruction(std::string("0x14"), IN_INC, AM_R, RT_D);
     case 0x15:
         return instruction(std::string("0x15"), IN_DEC, AM_R, RT_D);
     case 0x16:
         return instruction(std::string("0x16"), IN_LD, AM_R_D8, RT_D);
+    case 0x17:
+        return instruction(std::string("0x17"), IN_RLA);
+    case 0x18:
+        return instruction(std::string("0x18"), IN_JR, AM_D8);
+    case 0x19:
+        return instruction(std::string("0x19"), IN_ADD, AM_R_R, RT_HL, RT_DE);
     case 0x1A:
         return instruction(std::string("0x1A"), IN_LD, AM_R_MR, RT_A, RT_DE);
+    case 0x1B:
+        return instruction(std::string("0x1B"), IN_DEC, AM_R, RT_DE);
+    case 0x1C:
+        return instruction(std::string("0x1C"), IN_INC, AM_R, RT_E);
+    case 0x1D:
+        return instruction(std::string("0x1D"), IN_DEC, AM_R, RT_E);
     case 0x1E:
         return instruction(std::string("0x1E"), IN_LD, AM_R_D8, RT_E);
+    case 0x1F:
+        return instruction(std::string("0x1F"), IN_RRA);
+    case 0x20:
+        return instruction(std::string("0x20"), IN_JR, AM_D8, RT_NONE, RT_NONE, CT_NZ);
     case 0x21:
         return instruction(std::string("0x21"), IN_LD, AM_R_D16, RT_HL);
     case 0x22:
         return instruction(std::string("0x22"), IN_LD, AM_HLI_R, RT_HL, RT_A);
+    case 0x23:
+        return instruction(std::string("0x23"), IN_INC, AM_R, RT_HL);
+    case 0x24:
+        return instruction(std::string("0x24"), IN_INC, AM_R, RT_H);
     case 0x25:
         return instruction(std::string("0x25"), IN_DEC, AM_R, RT_H);
     case 0x26:
         return instruction(std::string("0x26"), IN_LD, AM_R_D8, RT_H);
+    case 0x27:
+        return instruction(std::string("0x27"), IN_DAA);
+    case 0x28:
+        return instruction(std::string("0x28"), IN_JR, AM_D8, RT_NONE, RT_NONE, CT_Z);
+    case 0x29:
+        return instruction(std::string("0x29"), IN_ADD, AM_R_R, RT_HL, RT_HL);
     case 0x2A:
         return instruction(std::string("0x2A"), IN_LD, AM_R_HLI, RT_A, RT_HL);
+    case 0x2B:
+        return instruction(std::string("0x2B"), IN_DEC, AM_R, RT_HL);
+    case 0x2C:
+        return instruction(std::string("0x2C"), IN_INC, AM_R, RT_L);
+    case 0x2D:
+        return instruction(std::string("0x2D"), IN_DEC, AM_R, RT_L);
     case 0x2E:
         return instruction(std::string("0x2E"), IN_LD, AM_R_D8, RT_L);
+    case 0x2F:
+        return instruction(std::string("0x2F"), IN_CPL);
+    case 0x30:
+        return instruction(std::string("0x30"), IN_JR, AM_D8, RT_NONE, RT_NONE, CT_NC);
     case 0x31:
         return instruction(std::string("0x31"), IN_LD, AM_R_D16, RT_SP);
     case 0x32:
         return instruction(std::string("0x32"), IN_LD, AM_HLD_R, RT_HL, RT_A);
+    case 0x33:
+        return instruction(std::string("0x33"), IN_INC, AM_R, RT_SP);
+    case 0x34:
+        return instruction(std::string("0x34"), IN_INC, AM_MR, RT_HL);
     case 0x35:
-        return instruction(std::string("0x35"), IN_DEC, AM_R, RT_HL);
+        return instruction(std::string("0x35"), IN_DEC, AM_MR, RT_HL);
     case 0x36:
         return instruction(std::string("0x36"), IN_LD, AM_MR_D8, RT_HL);
+    case 0x37:
+        return instruction(std::string("0x37"), IN_SCF);
+    case 0x38:
+        return instruction(std::string("0x38"), IN_JR, AM_D8, RT_NONE, RT_NONE, CT_C);
+    case 0x39:
+        return instruction(std::string("0x39"), IN_ADD, AM_R_R, RT_HL, RT_SP);
     case 0x3A:
         return instruction(std::string("0x3A"), IN_LD, AM_R_HLD, RT_A, RT_HL);
+    case 0x3B:
+        return instruction(std::string("0x3B"), IN_DEC, AM_R, RT_SP);
+    case 0x3C:
+        return instruction(std::string("0x3C"), IN_INC, AM_R, RT_A);
+    case 0x3D:
+        return instruction(std::string("0x3D"), IN_DEC, AM_R, RT_A);
     case 0x3E:
         return instruction(std::string("0x3E"), IN_LD, AM_R_D8, RT_A);
+    case 0x3F:
+        return instruction(std::string("0x3F"), IN_CCF);
     case 0x40:
         return instruction(std::string("0x40"), IN_LD, AM_R_R, RT_B, RT_B);
     case 0x41:
@@ -207,15 +283,246 @@ instruction instructions::instructionByOpcode(uint8_t opcode)
         return instruction(std::string("0x7E"), IN_LD, AM_R_MR, RT_A, RT_HL);
     case 0x7F:
         return instruction(std::string("0x7F"), IN_LD, AM_R_R, RT_A, RT_A);
-	case 0xAF:
-		return instruction(std::string("0xAF"), IN_XOR, AM_R, RT_A);
-	case 0xC3:
-		return instruction(std::string("0xC3"), IN_JP, AM_D16);
-	case 0xF3:
-		return instruction(std::string("0xF3"), IN_DI);
-	default:
-		return instruction();
-	}
+    case 0x80:
+        return instruction(std::string("0x80"), IN_ADD, AM_R_R, RT_A, RT_B);
+    case 0x81:
+        return instruction(std::string("0x81"), IN_ADD, AM_R_R, RT_A, RT_C);
+    case 0x82:
+        return instruction(std::string("0x82"), IN_ADD, AM_R_R, RT_A, RT_D);
+    case 0x83:
+        return instruction(std::string("0x83"), IN_ADD, AM_R_R, RT_A, RT_E);
+    case 0x84:
+        return instruction(std::string("0x84"), IN_ADD, AM_R_R, RT_A, RT_H);
+    case 0x85:
+        return instruction(std::string("0x85"), IN_ADD, AM_R_R, RT_A, RT_L);
+    case 0x86:
+        return instruction(std::string("0x86"), IN_ADD, AM_R_MR, RT_A, RT_HL);
+    case 0x87:
+        return instruction(std::string("0x87"), IN_ADD, AM_R_R, RT_A, RT_A);
+    case 0x88:
+        return instruction(std::string("0x88"), IN_ADC, AM_R_R, RT_A, RT_B);
+    case 0x89:
+        return instruction(std::string("0x89"), IN_ADC, AM_R_R, RT_A, RT_C);
+    case 0x8A:
+        return instruction(std::string("0x8A"), IN_ADC, AM_R_R, RT_A, RT_D);
+    case 0x8B:
+        return instruction(std::string("0x8B"), IN_ADC, AM_R_R, RT_A, RT_E);
+    case 0x8C:
+        return instruction(std::string("0x8C"), IN_ADC, AM_R_R, RT_A, RT_H);
+    case 0x8D:
+        return instruction(std::string("0x8D"), IN_ADC, AM_R_R, RT_A, RT_L);
+    case 0x8E:
+        return instruction(std::string("0x8E"), IN_ADC, AM_R_MR, RT_A, RT_HL);
+    case 0x8F:
+        return instruction(std::string("0x8F"), IN_ADC, AM_R_R, RT_A, RT_A);
+    case 0x90:
+        return instruction(std::string("0x90"), IN_SUB, AM_R_R, RT_A, RT_B);
+    case 0x91:
+        return instruction(std::string("0x91"), IN_SUB, AM_R_R, RT_A, RT_C);
+    case 0x92:
+        return instruction(std::string("0x92"), IN_SUB, AM_R_R, RT_A, RT_D);
+    case 0x93:
+        return instruction(std::string("0x93"), IN_SUB, AM_R_R, RT_A, RT_E);
+    case 0x94:
+        return instruction(std::string("0x94"), IN_SUB, AM_R_R, RT_A, RT_H);
+    case 0x95:
+        return instruction(std::string("0x95"), IN_SUB, AM_R_R, RT_A, RT_L);
+    case 0x96:
+        return instruction(std::string("0x96"), IN_SUB, AM_R_MR, RT_A, RT_HL);
+    case 0x97:
+        return instruction(std::string("0x97"), IN_SUB, AM_R_R, RT_A, RT_A);
+    case 0x98:
+        return instruction(std::string("0x98"), IN_SBC, AM_R_R, RT_A, RT_B);
+    case 0x99:
+        return instruction(std::string("0x99"), IN_SBC, AM_R_R, RT_A, RT_C);
+    case 0x9A:
+        return instruction(std::string("0x9A"), IN_SBC, AM_R_R, RT_A, RT_D);
+    case 0x9B:
+        return instruction(std::string("0x9B"), IN_SBC, AM_R_R, RT_A, RT_E);
+    case 0x9C:
+        return instruction(std::string("0x9C"), IN_SBC, AM_R_R, RT_A, RT_H);
+    case 0x9D:
+        return instruction(std::string("0x9D"), IN_SBC, AM_R_R, RT_A, RT_L);
+    case 0x9E:
+        return instruction(std::string("0x9E"), IN_SBC, AM_R_MR, RT_A, RT_HL);
+    case 0x9F:
+        return instruction(std::string("0x9F"), IN_SBC, AM_R_R, RT_A, RT_A);
+    case 0xA0:
+        return instruction(std::string("0xA0"), IN_AND, AM_R_R, RT_A, RT_B);
+    case 0xA1:
+        return instruction(std::string("0xA1"), IN_AND, AM_R_R, RT_A, RT_C);
+    case 0xA2:
+        return instruction(std::string("0xA2"), IN_AND, AM_R_R, RT_A, RT_D);
+    case 0xA3:
+        return instruction(std::string("0xA3"), IN_AND, AM_R_R, RT_A, RT_E);
+    case 0xA4:
+        return instruction(std::string("0xA4"), IN_AND, AM_R_R, RT_A, RT_H);
+    case 0xA5:
+        return instruction(std::string("0xA5"), IN_AND, AM_R_R, RT_A, RT_L);
+    case 0xA6:
+        return instruction(std::string("0xA6"), IN_AND, AM_R_MR, RT_A, RT_HL);
+    case 0xA7:
+        return instruction(std::string("0xA7"), IN_AND, AM_R_R, RT_A, RT_A);
+    case 0xA8:
+        return instruction(std::string("0xA8"), IN_XOR, AM_R_R, RT_A, RT_B);
+    case 0xA9:
+        return instruction(std::string("0xA9"), IN_XOR, AM_R_R, RT_A, RT_C);
+    case 0xAA:
+        return instruction(std::string("0xAA"), IN_XOR, AM_R_R, RT_A, RT_D);
+    case 0xAB:
+        return instruction(std::string("0xAB"), IN_XOR, AM_R_R, RT_A, RT_E);
+    case 0xAC:
+        return instruction(std::string("0xAC"), IN_XOR, AM_R_R, RT_A, RT_H);
+    case 0xAD:
+        return instruction(std::string("0xAD"), IN_XOR, AM_R_R, RT_A, RT_L);
+    case 0xAE:
+        return instruction(std::string("0xAE"), IN_XOR, AM_R_MR, RT_A, RT_HL);
+    case 0xAF:
+        return instruction(std::string("0xAF"), IN_XOR, AM_R_R, RT_A, RT_A);
+    case 0xB0:
+        return instruction(std::string("0xB0"), IN_OR, AM_R_R, RT_A, RT_B);
+    case 0xB1:
+        return instruction(std::string("0xB1"), IN_OR, AM_R_R, RT_A, RT_C);
+    case 0xB2:
+        return instruction(std::string("0xB2"), IN_OR, AM_R_R, RT_A, RT_D);
+    case 0xB3:
+        return instruction(std::string("0xB3"), IN_OR, AM_R_R, RT_A, RT_E);
+    case 0xB4:
+        return instruction(std::string("0xB4"), IN_OR, AM_R_R, RT_A, RT_H);
+    case 0xB5:
+        return instruction(std::string("0xB5"), IN_OR, AM_R_R, RT_A, RT_L);
+    case 0xB6:
+        return instruction(std::string("0xB6"), IN_OR, AM_R_MR, RT_A, RT_HL);
+    case 0xB7:
+        return instruction(std::string("0xB7"), IN_OR, AM_R_R, RT_A, RT_A);
+    case 0xB8:
+        return instruction(std::string("0xB8"), IN_CP, AM_R_R, RT_A, RT_B);
+    case 0xB9:
+        return instruction(std::string("0xB9"), IN_CP, AM_R_R, RT_A, RT_C);
+    case 0xBA:
+        return instruction(std::string("0xBA"), IN_CP, AM_R_R, RT_A, RT_D);
+    case 0xBB:
+        return instruction(std::string("0xBB"), IN_CP, AM_R_R, RT_A, RT_E);
+    case 0xBC:
+        return instruction(std::string("0xBC"), IN_CP, AM_R_R, RT_A, RT_H);
+    case 0xBD:
+        return instruction(std::string("0xBD"), IN_CP, AM_R_R, RT_A, RT_L);
+    case 0xBE:
+        return instruction(std::string("0xBE"), IN_CP, AM_R_MR, RT_A, RT_HL);
+    case 0xBF:
+        return instruction(std::string("0xBF"), IN_CP, AM_R_R, RT_A, RT_A);
+    case 0xC0:
+        return instruction(std::string("0xC0"), IN_RET, AM_IMP, RT_NONE, RT_NONE, CT_NZ);
+    case 0xC1:
+        return instruction(std::string("0xC1"), IN_POP, AM_R, RT_BC);
+    case 0xC2:
+        return instruction(std::string("0xC2"), IN_JP, AM_D16, RT_NONE, RT_NONE, CT_NZ);
+    case 0xC3:
+        return instruction(std::string("0xC3"), IN_JP, AM_D16);
+    case 0xC4:
+        return instruction(std::string("0xC4"), IN_CALL, AM_D16, RT_NONE, RT_NONE, CT_NZ);
+    case 0xC5:
+        return instruction(std::string("0xC5"), IN_PUSH, AM_R, RT_BC);
+    case 0xC6:
+        return instruction(std::string("0xC6"), IN_ADD, AM_R_D8, RT_A);
+    case 0xC7:
+        return instruction(std::string("0xC7"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x00);
+    case 0xC8:
+        return instruction(std::string("0xC8"), IN_RET, AM_IMP, RT_NONE, RT_NONE, CT_Z);
+    case 0xC9:
+        return instruction(std::string("0xC9"), IN_RET);
+    case 0xCA:
+        return instruction(std::string("0xCA"), IN_JP, AM_D16, RT_NONE, RT_NONE, CT_Z);
+    case 0xCB:
+        return instruction(std::string("0xCB"), IN_CB);
+    case 0xCC:
+        return instruction(std::string("0xCC"), IN_CALL, AM_D16, RT_NONE, RT_NONE, CT_Z);
+    case 0xCD:
+        return instruction(std::string("0xCD"), IN_CALL, AM_D16);
+    case 0xCE:
+        return instruction(std::string("0xCE"), IN_ADC, AM_R_D8, RT_A);
+    case 0xCF:
+        return instruction(std::string("0xCF"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x08);
+    case 0xD0:
+        return instruction(std::string("0xD0"), IN_RET, AM_IMP, RT_NONE, RT_NONE, CT_NC);
+    case 0xD1:
+        return instruction(std::string("0xD1"), IN_POP, AM_R, RT_DE);
+    case 0xD2:
+        return instruction(std::string("0xD2"), IN_JP, AM_D16, RT_NONE, RT_NONE, CT_NC);
+    //case 0xD3:
+        //return instruction(std::string("0xD3"), IN_INVALID);
+    case 0xD4:
+        return instruction(std::string("0xD4"), IN_CALL, AM_D16, RT_NONE, RT_NONE, CT_NC);
+    case 0xD5:
+        return instruction(std::string("0xD5"), IN_PUSH, AM_R, RT_DE);
+    case 0xD6:
+        return instruction(std::string("0xD6"), IN_SUB, AM_R_D8, RT_A);
+    case 0xD7:
+        return instruction(std::string("0xD7"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x10);
+    case 0xD8:
+        return instruction(std::string("0xD8"), IN_RET, AM_IMP, RT_NONE, RT_NONE, CT_C);
+    case 0xD9:
+        return instruction(std::string("0xD9"), IN_RETI);
+    case 0xDA:
+        return instruction(std::string("0xDA"), IN_JP, AM_D16, RT_NONE, RT_NONE, CT_C);
+    case 0xDC:
+        return instruction(std::string("0xDC"), IN_CALL, AM_D16, RT_NONE, RT_NONE, CT_C);
+    case 0xDE:
+        return instruction(std::string("0xDE"), IN_SBC, AM_R_D8, RT_A);
+    case 0xDF:
+        return instruction(std::string("0xDF"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x18);
+    case 0xE0:
+        return instruction(std::string("0xE0"), IN_LDH, AM_A8_R, RT_NONE, RT_A);
+    case 0xE1:
+        return instruction(std::string("0xE1"), IN_POP, AM_R, RT_HL);
+    case 0xE2:
+        return instruction(std::string("0xE2"), IN_LDH, AM_MR_R, RT_C, RT_A);
+    case 0xE5:
+        return instruction(std::string("0xE5"), IN_PUSH, AM_R, RT_HL);
+    case 0xE6:
+        return instruction(std::string("0xE6"), IN_AND, AM_R_D8, RT_A);
+    case 0xE7:
+        return instruction(std::string("0xE7"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x20);
+    case 0xE8:
+        return instruction(std::string("0xE8"), IN_ADD, AM_R_D8, RT_SP);
+    case 0xE9:
+        return instruction(std::string("0xE9"), IN_JP, AM_R, RT_HL);
+    case 0xEA:
+        return instruction(std::string("0xEA"), IN_LD, AM_MR_R, RT_NONE, RT_A);
+    case 0xEE:
+        return instruction(std::string("0xEE"), IN_XOR, AM_R_D8, RT_A);
+    case 0xEF:
+        return instruction(std::string("0xEF"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x28);
+    case 0xF0:
+        return instruction(std::string("0xF0"), IN_LDH, AM_R_MR, RT_A);
+    case 0xF1:
+        return instruction(std::string("0xF1"), IN_POP, AM_R, RT_AF);
+    case 0xF2:
+        return instruction(std::string("0xF2"), IN_LDH, AM_R_MR, RT_A, RT_C);
+    case 0xF3:
+        return instruction(std::string("0xF3"), IN_DI);
+    case 0xF5:
+        return instruction(std::string("0xF5"), IN_PUSH, AM_R, RT_AF);
+    case 0xF6:
+        return instruction(std::string("0xF6"), IN_OR, AM_R_D8, RT_A);
+    case 0xF7:
+        return instruction(std::string("0xF7"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x30);
+    case 0xF8:
+        return instruction(std::string("0xF8"), IN_LD, AM_HL_SPR, RT_HL, RT_SP);
+    case 0xF9:
+        return instruction(std::string("0xF9"), IN_LD, AM_R_R, RT_SP, RT_HL);
+    case 0xFA:
+        return instruction(std::string("0xFA"), IN_LD, AM_R_MR, RT_A, RT_A);
+    case 0xFB:
+        return instruction(std::string("0xFB"), IN_EI);
+    case 0xFE:
+        return instruction(std::string("0xFE"), IN_CP, AM_R_D8, RT_A);
+    case 0xFF:
+        return instruction(std::string("0xFF"), IN_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x38);
+    default:
+        return instruction(std::string("0x00"), IN_NOP);
+    }
+
 }
 
 char* instructions::instructionName(instructionType t)
