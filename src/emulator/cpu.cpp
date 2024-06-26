@@ -99,7 +99,7 @@ void cpu::fetchData()
 	{
 		uint16_t address = readRegistry(ctx->currentInstruction.reg2);
 		
-		if (ctx->currentInstruction.reg1 == RT_C)
+		if (ctx->currentInstruction.reg2 == RT_C)
 		{
 			address |= 0xFF00;
 		}
@@ -161,8 +161,6 @@ void cpu::fetchData()
 		ctx->fetchedData = lowValue | (highValue << 8);
 
 		ctx->registers.programCounter += 2;
-
-		//return;
 	}
 	break;
 	case AM_D8:
