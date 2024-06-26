@@ -30,6 +30,7 @@ struct cpuContext
 	bool halted = false;
 	bool stepping = false;
 	bool destinationIsMemory = false;
+	bool masterInteruptEnabled = true;
 
 	cpuContext() {}
 };
@@ -41,17 +42,18 @@ public:
 	cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions, std::shared_ptr <cartridgeLoader> loader);
 	void init();
 	bool step();
-	
-protected:
 	void fetchInstruction();
 	void fetchData();
 	void execute();
-	uint16_t cpuReadRegistry(registryType rt);
+protected:
+	
+	uint16_t readRegistry(registryType rt);
+	void setRegistry(registryType rt, uint16_t value);
 	uint16_t reverse(uint16_t n);
 	static bool checkCondition(cpuContext* ctx);
 	void setFlags(cpuContext* ctx, char z, char n, char h, char c);
 private:
-	cpuContext ctx;
+	std::shared_ptr <cpuContext> ctx;
 	std::shared_ptr <bus> m_bus;
 	std::shared_ptr <instructions> m_instructions;
 	std::shared_ptr <cartridgeLoader> m_loader;
