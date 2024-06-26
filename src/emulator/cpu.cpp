@@ -347,7 +347,15 @@ void cpu::execute()
 		}
 		break;
 	case IN_LDH:
-		GBE_ERROR("IN_LDH TODO");
+		if (ctx->currentInstruction.reg1 == RT_A)
+		{
+			setRegistry(ctx->currentInstruction.reg1, m_bus->read8bit(0xFF00 | ctx->fetchedData));
+		}
+		else {
+			m_bus->write(0xFF00 | ctx->fetchedData, ctx->registers.a);
+		}
+
+		emulation::cycles(1);
 		break;
 	case IN_OR:
 		GBE_ERROR("IN_OR TODO");
