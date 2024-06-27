@@ -7,8 +7,9 @@ std::shared_ptr <cpu> m_cpu;
 void emulation::initEmulator()
 {
     m_loader = std::shared_ptr <cartridgeLoader>(new cartridgeLoader());
+    m_memory = std::shared_ptr <memory>(new memory());
     m_instructions = std::shared_ptr <instructions>(new instructions());
-    m_bus = std::shared_ptr <bus>(new bus(m_loader));
+    m_bus = std::shared_ptr <bus>(new bus(m_loader, m_memory));
     m_cpu = std::shared_ptr <cpu>(new cpu(m_bus,m_instructions,m_loader));
   
 }

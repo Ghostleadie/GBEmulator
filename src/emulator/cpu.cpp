@@ -3,7 +3,6 @@
 #include "emulator.h"
 #include "spdlog/fmt/bin_to_hex.h"
 #include <format>
-#include "../Utility/utility.h"
 
 cpu::cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions, std::shared_ptr <cartridgeLoader> cartridgeLoader)
 {
@@ -25,10 +24,7 @@ bool cpu::step()
 	{
 		fetchInstruction();
 		fetchData();
-
-		char hex_string[20];
-		sprintf(hex_string, "%X", ctx->currentOpcode); //convert number to hex
-		GBE_INFO("current instruction type: {}", hex_string);
+		GBE_INFO("current instruction type: {} A: {} BC: {}{} DE: {}{} HL: {}{}", utility::uint8ToHex(ctx->currentOpcode), utility::uint8ToHex(ctx->registers.a), utility::uint8ToHex(ctx->registers.b), utility::uint8ToHex(ctx->registers.c), utility::uint8ToHex(ctx->registers.d), utility::uint8ToHex(ctx->registers.e), utility::uint8ToHex(ctx->registers.h), utility::uint8ToHex(ctx->registers.l));
 
 		execute();
 	}
@@ -53,11 +49,9 @@ void cpu::fetchData()
 	switch (ctx->currentInstruction.mode)
 	{
 	case AM_IMP:
-		GBE_INFO("AM_IMP instruction	Program Count: {}", ctx->registers.programCounter);
 		break;
 	case AM_R_D16:
 	{
-		GBE_INFO("AM_R_D16 instruction	Program Count : {}", ctx->registers.programCounter);
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
 		emulation::cycles(1);
@@ -85,12 +79,10 @@ void cpu::fetchData()
 		}
 		break;
 	case AM_R:
-		GBE_INFO("AM_R instruction	Program Count : {}", ctx->registers.programCounter);
 		ctx->fetchedData = readRegistry(ctx->currentInstruction.reg1);
 		return;
 		break;
 	case AM_R_D8:
-		GBE_INFO("AM_R_D8 instruction	Program Count : {}", ctx->registers.programCounter);
 		ctx->fetchedData = m_bus->read8bit(ctx->registers.programCounter);
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
@@ -149,7 +141,6 @@ void cpu::fetchData()
 	case  AM_D16:
 		//brackets need to create variables in the case statement
 	{
-		GBE_INFO("AM_D16 instruction	Program Count : {}", ctx->registers.programCounter);
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
 		emulation::cycles(1);
@@ -170,7 +161,6 @@ void cpu::fetchData()
 		break;
 	case AM_D16_R:
 	{
-		GBE_INFO("AM_D16_R instruction	Program Count : {}", ctx->registers.programCounter);
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
 		emulation::cycles(1);
@@ -187,7 +177,6 @@ void cpu::fetchData()
 	}
 		break;
 	case AM_MR_D8:
-		GBE_INFO("AM_MR_D8 instruction	Program Count : {}", ctx->registers.programCounter);
 		ctx->fetchedData = m_bus->read8bit(ctx->registers.programCounter);
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
@@ -195,7 +184,6 @@ void cpu::fetchData()
 		ctx->destinationIsMemory = true;
 		break;
 	case AM_MR:
-		GBE_INFO("AM_MR_D8 instruction	Program Count : {}", ctx->registers.programCounter);
 		ctx->memoryDestination = readRegistry(ctx->currentInstruction.reg1);
 		ctx->destinationIsMemory = true;
 		ctx->fetchedData = m_bus->read8bit(readRegistry(ctx->currentInstruction.reg1));
@@ -203,7 +191,6 @@ void cpu::fetchData()
 		break;
 	case AM_A16_R:
 	{
-		GBE_INFO("AM_D16_R instruction	Program Count : {}", ctx->registers.programCounter);
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
 		emulation::cycles(1);
@@ -221,7 +208,6 @@ void cpu::fetchData()
 		break;
 	case AM_R_A16:
 	{
-		GBE_INFO("AM_A16_R instruction	Program Count : {}", ctx->registers.programCounter);
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
 		emulation::cycles(1);

@@ -33,6 +33,6 @@ private:
 	std::shared_ptr<cpu> m_cpu;
 	std::shared_ptr<bus> m_bus;
 	std::shared_ptr<instructions> m_instructions;
-
+	std::shared_ptr<memory> m_memory;
 
 };

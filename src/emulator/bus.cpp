@@ -1,9 +1,10 @@
 #include "bus.h"
 #include <type_traits>
 
-bus::bus(std::shared_ptr <cartridgeLoader> loader)
+bus::bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory)
 {
 	m_loader = loader;
+	m_memory = memory;
 }
 
 uint8_t bus::read8bit(uint16_t address)
@@ -12,6 +13,47 @@ uint8_t bus::read8bit(uint16_t address)
 	{
 		//ROM Data
 		return m_loader->readCartridge(address);
+	}
+	else if (address < 0xA000)
+	{
+		//Character map data
+
+	}
+	else if (address < 0xC000)
+	{
+		//Cartridge RAM
+		return m_loader->readCartridge(address);
+	}
+	else if (address < 0xE000)
+	{
+		//Working RAM
+
+	}
+	else if (address < 0xFE00)
+	{
+		//reserved echo ram
+		return 0;
+
+	}
+	else if (address < 0xFEA0)
+	{
+		//DAM
+
+	}
+	else if (address < 0xFF00)
+	{
+		//reserved memory
+		return 0;
+	}
+	else if (address < 0xFF80)
+	{
+		//IO
+
+	}
+	else if (address < 0xFFFF)
+	{
+		//CPU Interrupt enable register
+
 	}
 	return 0;
 }
@@ -32,6 +74,54 @@ void bus::write(uint16_t address, uint8_t value)
 		//ROM Data
 		m_loader->writeToCartridge(address, value);
 		return;
+	}
+	else if (address < 0xA000)
+	{
+		//Character map data
+
+	}
+	else if (address < 0xC000)
+	{
+		//Cartridge RAM
+		m_loader->writeToCartridge(address, value);
+		return;
+	}
+	else if (address < 0xE000)
+	{
+		//Working RAM
+		m_memory->write(address, value);
+	}
+	else if (address < 0xFE00)
+	{
+		//reserved echo ram
+		GBE_ERROR("Trying to write into reserved memory");
+		return;
+
+	}
+	else if (address < 0xFEA0)
+	{
+		//DAM
+
+	}
+	else if (address < 0xFF00)
+	{
+		//reserved memory
+		GBE_ERROR("Trying to write into reserved memory");
+		return;
+	}
+	else if (address < 0xFF80)
+	{
+		//IO
+
+	}
+	else if (address < 0xFFFF)
+	{
+		//CPU Interrupt enable register
+
+	}
+	else
+	{
+		m_memory->write(address, value);
 	}
 }
 
