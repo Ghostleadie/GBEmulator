@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "log/Log.h"
+#include "Utility/utility.h"
 
 //checks a specific bit in a number set
 #define BIT(a, n) ((a & (1 << n)) ? 1 : 0)
