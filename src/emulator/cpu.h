@@ -3,6 +3,7 @@
 #include "instructions.h"
 
 class bus;
+class cartridgeLoader;
 
 struct cpuRegisters
 {
