@@ -10,7 +10,7 @@ struct cartirdge
 
 	char title[16];
 	uint16_t newLicCode;
-	uint8_t sgb_flag;
+	uint8_t sgbFlag;
 	uint8_t type;
 	uint8_t romSize;
 	uint8_t ramSize;
