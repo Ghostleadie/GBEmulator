@@ -1,6 +1,9 @@
 #pragma once
-#include "cartridge.h"
-#include "memory.h"
+
+
+class cartridgeLoader;
+class memory;
+class cpu;
 
 class bus
 {
@@ -13,6 +16,7 @@ public:
 private:
 	std::shared_ptr <cartridgeLoader> m_loader;
 	std::shared_ptr <memory> m_memory;
+	std::shared_ptr <cpu> m_cpu;
 };
 
 

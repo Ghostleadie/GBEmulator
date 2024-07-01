@@ -1,6 +1,8 @@
 #pragma once
+
 #include "instructions.h"
-#include "bus.h"
+
+class bus;
 
 struct cpuRegisters
 {
@@ -25,6 +27,7 @@ struct cpuContext
 	uint16_t fetchedData;
 	uint16_t memoryDestination;
 	uint8_t currentOpcode;
+	uint8_t interruptEnableRegister;
 	instruction currentInstruction;
 
 	bool halted = false;
@@ -58,6 +61,3 @@ private:
 	std::shared_ptr <instructions> m_instructions;
 	std::shared_ptr <cartridgeLoader> m_loader;
 };
-
-#define CPU_FLAG_Z BIT(ctx->registers.f, 7)
-#define CPU_FLAG_C BIT(ctx->registers.f, 4)

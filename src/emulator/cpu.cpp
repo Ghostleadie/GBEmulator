@@ -326,7 +326,7 @@ void cpu::execute()
 			uint8_t hFlag = (readRegistry(ctx->currentInstruction.reg2) & 0xF) + (ctx->fetchedData & 0xF) >= 10;
 			uint8_t cFlag = (readRegistry(ctx->currentInstruction.reg2) & 0xFF) + (ctx->fetchedData & 0xFF) >= 0x100;
 		
-			setFlags(ctx.get(), 0, 0, hFlag, cFlag);
+			setFlags(ctx, 0, 0, hFlag, cFlag);
 			setRegistry(ctx->currentInstruction.reg1, readRegistry(ctx->currentInstruction.reg2) + (char)ctx->fetchedData); //cast to char as it could be a negative
 		}
 		break;
@@ -415,7 +415,7 @@ void cpu::execute()
 		break;
 	case IN_XOR:
 		ctx->registers.a ^= ctx->fetchedData & 0xFF;
-		setFlags(ctx.get(), ctx->registers.a == 0, 0, 0, 0);
+		setFlags(ctx, ctx->registers.a == 0, 0, 0, 0);
 		break;
 	default:
 		GBE_ERROR("Unknown instruction");
@@ -546,6 +546,10 @@ bool cpu::checkCondition(std::weak_ptr<cpuContext> ctx)
 		case CT_NZ: return !z;
 		}
 	}
+	else
+	{
+		GBE_ERROR("CPU context doesn't exist");
+	}
 
 	return false;
 }
@@ -569,5 +573,9 @@ void cpu::setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c
 		if (c != -1) {
 			BIT_SET(context->registers.f, 4, c);
 		}
+	}
+	else
+	{
+		GBE_ERROR("CPU context doesn't exist");
 	}
 }

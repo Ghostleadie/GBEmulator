@@ -1,8 +1,12 @@
 #pragma once
 #include <stdio.h>
-#include "cartridge.h"
-#include "cpu.h"
 #include "SDL.h"
+
+class cartridgeLoader;
+class memory;
+class cpu;
+class bus;
+class instructions;
 
 struct emulator
 {

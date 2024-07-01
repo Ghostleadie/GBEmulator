@@ -1,4 +1,9 @@
 #include "emulator.h"
+#include "cartridge.h"
+#include "memory.h"
+#include "cpu.h"
+#include "bus.h"
+#include "instructions.h"
 
 std::shared_ptr <emulator> m_emulator;
 std::shared_ptr <cartridgeLoader> m_loader;

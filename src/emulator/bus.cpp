@@ -1,4 +1,7 @@
 #include "bus.h"
+#include "cartridge.h"
+#include "memory.h"
+#include "cpu.h"
 #include <type_traits>
 
 bus::bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory)
@@ -55,7 +58,7 @@ uint8_t bus::read8bit(uint16_t address)
 		//CPU Interrupt enable register
 
 	}
-	return 0;
+	return m_memory->read(address);
 }
 
 uint16_t bus::read16bit(uint16_t address)
