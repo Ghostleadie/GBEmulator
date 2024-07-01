@@ -50,8 +50,8 @@ protected:
 	uint16_t readRegistry(registryType rt);
 	void setRegistry(registryType rt, uint16_t value);
 	uint16_t reverse(uint16_t n);
-	static bool checkCondition(cpuContext* ctx);
-	void setFlags(cpuContext* ctx, char z, char n, char h, char c);
+	static bool checkCondition(std::weak_ptr<cpuContext> ctx);
+	void setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c);
 private:
 	std::shared_ptr <cpuContext> ctx;
 	std::shared_ptr <bus> m_bus;
