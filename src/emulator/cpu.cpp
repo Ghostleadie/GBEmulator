@@ -422,6 +422,16 @@ void cpu::execute()
 	}
 }
 
+uint8_t cpu::getIERegister()
+{
+	return ctx->interruptEnableRegister;
+}
+
+void cpu::setIERegister(uint8_t value)
+{
+	ctx->interruptEnableRegister = value;
+}
+
 uint16_t cpu::readRegistry(registryType rt)
 {
 	switch (rt) {

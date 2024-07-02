@@ -49,6 +49,8 @@ public:
 	void fetchInstruction();
 	void fetchData();
 	void execute();
+	uint8_t getIERegister();
+	void setIERegister(uint8_t value);
 protected:
 	
 	uint16_t readRegistry(registryType rt);

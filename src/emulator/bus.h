@@ -9,6 +9,8 @@ class bus
 {
 public:
 	bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory);
+	bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory, std::shared_ptr <cpu> cpu);
+	void connectCPU(std::shared_ptr <cpu> cpu);
 	uint8_t read8bit(uint16_t address);
 	uint16_t read16bit(uint16_t address);
 	void write(uint16_t address, uint8_t value);

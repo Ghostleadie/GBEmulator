@@ -16,6 +16,8 @@ void emulation::initEmulator()
     m_instructions = std::shared_ptr <instructions>(new instructions());
     m_bus = std::shared_ptr <bus>(new bus(m_loader, m_memory));
     m_cpu = std::shared_ptr <cpu>(new cpu(m_bus,m_instructions,m_loader));
+    //work around will find a better solution later
+    m_bus->connectCPU(m_cpu);
   
 }
 

@@ -4,10 +4,22 @@
 #include "cpu.h"
 #include <type_traits>
 
-bus::bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory)
+bus::bus(std::shared_ptr<cartridgeLoader> loader, std::shared_ptr<memory> memory)
 {
 	m_loader = loader;
 	m_memory = memory;
+}
+
+bus::bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory, std::shared_ptr <cpu> cpu)
+{
+	m_loader = loader;
+	m_memory = memory;
+	m_cpu = cpu;
+}
+
+void bus::connectCPU(std::shared_ptr<cpu> cpu)
+{
+	m_cpu = cpu;
 }
 
 uint8_t bus::read8bit(uint16_t address)
@@ -56,7 +68,7 @@ uint8_t bus::read8bit(uint16_t address)
 	else if (address < 0xFFFF)
 	{
 		//CPU Interrupt enable register
-
+		m_cpu->getIERegister();
 	}
 	return m_memory->read(address);
 }
@@ -120,7 +132,7 @@ void bus::write(uint16_t address, uint8_t value)
 	else if (address < 0xFFFF)
 	{
 		//CPU Interrupt enable register
-
+		m_cpu->setIERegister(value);
 	}
 	else
 	{
