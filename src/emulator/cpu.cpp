@@ -746,8 +746,8 @@ bool cpu::checkCondition(std::weak_ptr<cpuContext> ctx)
 {
 	if(auto context = ctx.lock())
 	{ 
-		bool z = BIT(context->registers.f, 7);
-		bool c = BIT(context->registers.f, 4);
+		bool z = utility::checkBit(context->registers.f, 7);
+		bool c = utility::checkBit(context->registers.f, 4);
 		switch (context->currentInstruction.cond)
 		{
 		case CT_NONE: return true;
@@ -770,23 +770,43 @@ void cpu::setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c
 	if (auto context = ctx.lock())
 	{
 		if (z != -1) {
-			BIT_SET(context->registers.f, 7, z);
+			utility::setBitTo(context->registers.f, 7, z);
 		}
 
 		if (n != -1) {
-			BIT_SET(context->registers.f, 6, n);
+			utility::setBitTo(context->registers.f, 6, n);
 		}
 
 		if (h != -1) {
-			BIT_SET(context->registers.f, 5, h);
+			utility::setBitTo(context->registers.f, 5, h);
 		}
 
 		if (c != -1) {
-			BIT_SET(context->registers.f, 4, c);
+			utility::setBitTo(context->registers.f, 4, c);
 		}
 	}
 	else
 	{
 		GBE_ERROR("CPU context doesn't exist");
 	}
+}
+
+void cpu::setZeroFlag()
+{
+}
+
+void cpu::setSubtractFlag()
+{
+}
+
+void cpu::setHalfCarryFlag()
+{
+}
+
+void cpu::setCarryFlag()
+{
+}
+
+void cpu::isFlagSet()
+{
 }

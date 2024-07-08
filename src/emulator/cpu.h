@@ -56,16 +56,18 @@ public:
 	void pushStack(uint16_t value);
 	void pushStack(uint16_t high, uint16_t low);
 	uint16_t popStack(int bits = 8);
-
-protected:
-	
+private:
 	uint16_t readRegistry(registryType rt);
 	void setRegistry(registryType rt, uint16_t value);
 	uint16_t reverse(uint16_t n);
 	static bool checkCondition(std::weak_ptr<cpuContext> ctx);
 	void setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c);
-	//TODO: create functions for each cpu flag
-private:
+	void setZeroFlag();
+	void setSubtractFlag();
+	void setHalfCarryFlag();
+	void setCarryFlag();
+	void isFlagSet();
+
 	std::shared_ptr <cpuContext> ctx;
 	std::shared_ptr <bus> m_bus;
 	std::shared_ptr <instructions> m_instructions;
