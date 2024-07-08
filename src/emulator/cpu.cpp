@@ -18,6 +18,23 @@ void cpu::init()
 	ctx->registers.a = 0x01;
 }
 
+void cpu::goToAddress(std::weak_ptr<cpuContext> ctx, uint16_t address, bool pushPC)
+{
+	if (auto context = ctx.lock())
+	{
+		if (checkCondition(context))
+		{
+			if (pushPC) {
+				emulation::cycles(2);
+				pushStack(context->registers.programCounter);
+			}
+
+			context->registers.programCounter = context->fetchedData;
+			emulation::cycles(1);
+		}
+	}
+}
+
 bool cpu::step()
 {
 	if (!ctx->halted)
@@ -33,7 +50,7 @@ bool cpu::step()
 
 void cpu::fetchInstruction()
 {
-	ctx->currentOpcode = m_bus->read8bit(ctx->registers.programCounter++);
+	ctx->currentOpcode = m_bus->read(ctx->registers.programCounter++);
 	ctx->currentInstruction = m_instructions->instructionByOpcode(ctx->currentOpcode);
 }
 
@@ -53,10 +70,10 @@ void cpu::fetchData()
 	case AM_R_D16:
 	{
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
-		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
+		uint16_t lowValue = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 
-		uint16_t highValue = m_bus->read8bit(ctx->registers.programCounter + 1);
+		uint16_t highValue = m_bus->read(ctx->registers.programCounter + 1);
 		emulation::cycles(1);
 
 		//fetched data equal to low or high shifted into the high position
@@ -83,7 +100,7 @@ void cpu::fetchData()
 		return;
 		break;
 	case AM_R_D8:
-		ctx->fetchedData = m_bus->read8bit(ctx->registers.programCounter);
+		ctx->fetchedData = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
 		break;
@@ -96,17 +113,17 @@ void cpu::fetchData()
 			address |= 0xFF00;
 		}
 
-		ctx->fetchedData = m_bus->read8bit(address);
+		ctx->fetchedData = m_bus->read(address);
 		emulation::cycles(1);
 	}
 		break;
 	case AM_R_HLI:
-		ctx->fetchedData = m_bus->read8bit(readRegistry(ctx->currentInstruction.reg2));
+		ctx->fetchedData = m_bus->read(readRegistry(ctx->currentInstruction.reg2));
 		emulation::cycles(1);
 		setRegistry(RT_HL, readRegistry(RT_HL) + 1);
 		break;
 	case AM_R_HLD:
-		ctx->fetchedData = m_bus->read8bit(readRegistry(ctx->currentInstruction.reg2));
+		ctx->fetchedData = m_bus->read(readRegistry(ctx->currentInstruction.reg2));
 		emulation::cycles(1);
 		setRegistry(RT_HL, readRegistry(RT_HL) - 1);
 		break;
@@ -123,18 +140,18 @@ void cpu::fetchData()
 		setRegistry(RT_HL, readRegistry(RT_HL) - 1);
 		break;
 	case AM_R_A8:
-		ctx->fetchedData = m_bus->read8bit(ctx->registers.programCounter);
+		ctx->fetchedData = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
 		break;
 	case AM_A8_R:
-		ctx->memoryDestination = m_bus->read8bit(ctx->registers.programCounter) | 0xFF00;
+		ctx->memoryDestination = m_bus->read(ctx->registers.programCounter) | 0xFF00;
 		ctx->destinationIsMemory = true;
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
 		break;
 	case AM_HL_SPR:
-		ctx->fetchedData = m_bus->read8bit(ctx->registers.programCounter);
+		ctx->fetchedData = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
 		break;
@@ -142,10 +159,10 @@ void cpu::fetchData()
 		//brackets need to create variables in the case statement
 	{
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
-		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
+		uint16_t lowValue = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 
-		uint16_t highValue = m_bus->read8bit(ctx->registers.programCounter + 1);
+		uint16_t highValue = m_bus->read(ctx->registers.programCounter + 1);
 		emulation::cycles(1);
 
 		//fetched data equal to low or high shifted into the high position
@@ -155,17 +172,17 @@ void cpu::fetchData()
 	}
 	break;
 	case AM_D8:
-		ctx->fetchedData = m_bus->read8bit(ctx->registers.programCounter);
+		ctx->fetchedData = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
 		break;
 	case AM_D16_R:
 	{
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
-		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
+		uint16_t lowValue = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 
-		uint16_t highValue = m_bus->read8bit(ctx->registers.programCounter + 1);
+		uint16_t highValue = m_bus->read(ctx->registers.programCounter + 1);
 		emulation::cycles(1);
 
 		//fetched data equal to low or high shifted into the high position
@@ -177,7 +194,7 @@ void cpu::fetchData()
 	}
 		break;
 	case AM_MR_D8:
-		ctx->fetchedData = m_bus->read8bit(ctx->registers.programCounter);
+		ctx->fetchedData = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 		ctx->registers.programCounter++;
 		ctx->memoryDestination = readRegistry(ctx->currentInstruction.reg2);
@@ -186,16 +203,16 @@ void cpu::fetchData()
 	case AM_MR:
 		ctx->memoryDestination = readRegistry(ctx->currentInstruction.reg1);
 		ctx->destinationIsMemory = true;
-		ctx->fetchedData = m_bus->read8bit(readRegistry(ctx->currentInstruction.reg1));
+		ctx->fetchedData = m_bus->read(readRegistry(ctx->currentInstruction.reg1));
 		emulation::cycles(1);		
 		break;
 	case AM_A16_R:
 	{
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
-		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
+		uint16_t lowValue = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 
-		uint16_t highValue = m_bus->read8bit(ctx->registers.programCounter + 1);
+		uint16_t highValue = m_bus->read(ctx->registers.programCounter + 1);
 		emulation::cycles(1);
 
 		//fetched data equal to low or high shifted into the high position
@@ -209,17 +226,17 @@ void cpu::fetchData()
 	case AM_R_A16:
 	{
 		//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
-		uint16_t lowValue = m_bus->read8bit(ctx->registers.programCounter);
+		uint16_t lowValue = m_bus->read(ctx->registers.programCounter);
 		emulation::cycles(1);
 
-		uint16_t highValue = m_bus->read8bit(ctx->registers.programCounter + 1);
+		uint16_t highValue = m_bus->read(ctx->registers.programCounter + 1);
 		emulation::cycles(1);
 
 		//fetched data equal to low or high shifted into the high position
 		uint16_t address = lowValue | (highValue << 8);
 
 		ctx->registers.programCounter += 2;
-		ctx->fetchedData = m_bus->read8bit(address);
+		ctx->fetchedData = m_bus->read(address);
 		emulation::cycles(1);
 	}
 		break;
@@ -246,70 +263,136 @@ void cpu::execute()
 		break;
 	case IN_ADC:
 		GBE_ERROR("IN_ADC TODO");
+		exit(-7);
 		break;
 	case IN_ADD:
 		GBE_ERROR("IN_ADD TODO");
+		exit(-7);
 		break;
 	case IN_AND:
 		GBE_ERROR("IN_AND TODO");
+		exit(-7);
 		break;
 	case IN_BIT:
 		GBE_ERROR("IN_BIT TODO");
+		exit(-7);
 		break;
 	case IN_CALL:
-		GBE_ERROR("IN_CALL TODO");
+		goToAddress(ctx, ctx->fetchedData, true);
 		break;
 	case IN_CB:
 		GBE_ERROR("IN_CB TODO");
+		exit(-7);
 		break;
 	case IN_CCF:
 		GBE_ERROR("IN_CCF TODO");
+		exit(-7);
 		break;
 	case IN_CP:
 		GBE_ERROR("IN_CP TODO");
+		exit(-7);
 		break;
 	case IN_CPL:
 		GBE_ERROR("IN_CPL TODO");
+		exit(-7);
 		break;
 	case IN_DAA:
 		GBE_ERROR("IN_DAA TODO");
+		exit(-7);
 		break;
 	case IN_DEC:
-		GBE_ERROR("IN_DEC TODO");
+	{
+		//8-bits
+		uint16_t value = readRegistry(ctx->currentInstruction.reg1) - 1;
+		if (utility::isReg16Bit(ctx->currentInstruction.reg1))
+		{
+			emulation::cycles(1);
+		}
+		//16-bits (HL registry)
+		if (ctx->currentInstruction.reg1 == RT_HL && ctx->currentInstruction.mode == AM_MR)
+		{
+			//increasing the HL value
+			value = m_bus->read(readRegistry(RT_HL)) - 1;
+			value &= 0xFF;
+			m_bus->write(readRegistry(RT_HL), value);
+		}
+		else
+		{
+			setRegistry(ctx->currentInstruction.reg1, value);
+
+		}
+
+		if ((ctx->currentOpcode & 0x0B) == 0x0B)
+		{
+			return;
+		}
+
+		setFlags(ctx, value == 0, 1, (value & 0x0F) == 0x0F, -1);
+	}
 		break;
 	case IN_DI:
 		ctx->masterInteruptEnabled = false;
 		break;
 	case IN_EI:
 		GBE_ERROR("IN_EI TODO");
+		exit(-7);
 		break;
 	case IN_ERR:
 		GBE_ERROR("IN_ERR TODO");
+		exit(-7);
 		break;
 	case IN_HALT:
 		GBE_ERROR("IN_HALT TODO");
+		exit(-7);
 		break;
 	case IN_INC:
-		GBE_ERROR("IN_INC TODO");
-		break;
-	case IN_JP:
-		if (checkCondition(ctx))
+	{
+		//8-bits
+		uint16_t value = readRegistry(ctx->currentInstruction.reg1) + 1;
+		if (utility::isReg16Bit(ctx->currentInstruction.reg1))
 		{
-			ctx->registers.programCounter = ctx->fetchedData;
 			emulation::cycles(1);
 		}
+		//16-bits (HL registry)
+		if (ctx->currentInstruction.reg1 == RT_HL && ctx->currentInstruction.mode == AM_MR)
+		{
+			//increasing the HL value
+			value = m_bus->read(readRegistry(RT_HL)) + 1;
+			value &= 0xFF;
+			m_bus->write(readRegistry(RT_HL), value);
+		}
+		else
+		{
+			setRegistry(ctx->currentInstruction.reg1, value);
+
+		}
+
+		if ((ctx->currentOpcode & 0x03) == 0x03)
+		{
+			return;
+		}
+		setFlags(ctx, value == 0, 0, (value & 0x0F) == 0, -1);
+	}
+		break;
+	case IN_JP:
+		goToAddress(ctx, ctx->fetchedData, false);
 		break;
 	case IN_JPHL:
 		GBE_ERROR("IN_JPHL TODO");
+		exit(-7);
 		break;
 	case IN_JR:
-		GBE_ERROR("IN_JR TODO");
+	{
+		char rel = (char)(ctx->fetchedData & 0xFF);
+		uint16_t address = ctx->registers.programCounter + rel;
+		goToAddress(ctx, address, false);
+	}
 		break;
 	case IN_LD:
 		if (ctx->destinationIsMemory)
 		{
 			//check if 16 bit
-			if (ctx->currentInstruction.reg2 >= RT_AF)
+			if (utility::isReg16Bit(ctx->currentInstruction.reg2))
 			{
 				emulation::cycles(1);
 				m_bus->write(ctx->memoryDestination, ctx->fetchedData);
@@ -333,9 +416,10 @@ void cpu::execute()
 	case IN_LDH:
 		if (ctx->currentInstruction.reg1 == RT_A)
 		{
-			setRegistry(ctx->currentInstruction.reg1, m_bus->read8bit(0xFF00 | ctx->fetchedData));
+			setRegistry(ctx->currentInstruction.reg1, m_bus->read(0xFF00 | ctx->fetchedData));
 		}
-		else {
+		else 
+		{
 			m_bus->write(0xFF00 | ctx->fetchedData, ctx->registers.a);
 		}
 
@@ -343,75 +427,151 @@ void cpu::execute()
 		break;
 	case IN_OR:
 		GBE_ERROR("IN_OR TODO");
+		exit(-7);
 		break;
 	case IN_POP:
-		GBE_ERROR("IN_POP TODO");
+	{
+		// done this way to keep cycle count accurate
+		uint16_t low = popStack();
+		emulation::cycles(1);
+		uint16_t high = popStack();
+		emulation::cycles(1);
+
+		uint16_t n = (high << 8) | low;
+
+		setRegistry(ctx->currentInstruction.reg1, n);
+
+		if (ctx->currentInstruction.reg1 == RT_AF)
+		{
+			setRegistry(ctx->currentInstruction.reg1, n & 0xFFF0);
+		}
+	}
 		break;
 	case IN_PUSH:
-		GBE_ERROR("IN_PUSH TODO");
+	{
+		// done this way to keep cycle count accurate
+		uint16_t high = (readRegistry(ctx->currentInstruction.reg1) >> 8) & 0xFF;
+		emulation::cycles(1);
+		pushStack(high);
+		uint16_t low = readRegistry(ctx->currentInstruction.reg1) & 0xFF;
+		emulation::cycles(1);
+		pushStack(low);
+		emulation::cycles(1);
+	}
 		break;
 	case IN_RES:
 		GBE_ERROR("IN_RES TODO");
+		exit(-7);
 		break;
 	case IN_RET:
-		GBE_ERROR("IN_RET TODO");
+		if (ctx->currentInstruction.cond != CT_NONE)
+		{
+			emulation::cycles(1);
+		}
+
+		if (checkCondition(ctx))
+		{
+			uint16_t low = popStack();
+			emulation::cycles(1);
+			uint16_t high = popStack();
+			emulation::cycles(1);
+
+			uint16_t n = (high << 8) | low;
+
+			ctx->registers.programCounter = n;
+			emulation::cycles(1);
+		}
 		break;
 	case IN_RETI:
-		GBE_ERROR("IN_RETI TODO");
+		ctx->masterInteruptEnabled = true;
+		if (ctx->currentInstruction.cond != CT_NONE)
+		{
+			emulation::cycles(1);
+		}
+
+		if (checkCondition(ctx))
+		{
+			uint16_t low = popStack();
+			emulation::cycles(1);
+			uint16_t high = popStack();
+			emulation::cycles(1);
+
+			uint16_t n = (high << 8) | low;
+
+			ctx->registers.programCounter = n;
+			emulation::cycles(1);
+		}
 		break;
 	case IN_RL:
 		GBE_ERROR("IN_RL TODO");
+		exit(-7);
 		break;
 	case IN_RLA:
 		GBE_ERROR("IN_RLA TODO");
+		exit(-7);
 		break;
 	case IN_RLC:
 		GBE_ERROR("IN_RLC TODO");
+		exit(-7);
 		break;
 	case IN_RLCA:
 		GBE_ERROR("IN_RLCA TODO");
+		exit(-7);
 		break;
 	case IN_RR:
 		GBE_ERROR("IN_RR TODO");
+		exit(-7);
 		break;
 	case IN_RRA:
 		GBE_ERROR("IN_RRA TODO");
+		exit(-7);
 		break;
 	case IN_RRC:
 		GBE_ERROR("IN_RRC TODO");
+		exit(-7);
 		break;
 	case IN_RRCA:
 		GBE_ERROR("IN_RRCA TODO");
+		exit(-7);
 		break;
 	case IN_RST:
-		GBE_ERROR("IN_RST TODO");
+		goToAddress(ctx, ctx->currentInstruction.param, true);
 		break;
 	case IN_SBC:
 		GBE_ERROR("IN_SBC TODO");
+		exit(-7);
 		break;
 	case IN_SCF:
 		GBE_ERROR("IN_SCF TODO");
+		exit(-7);
 		break;
 	case IN_SET:
 		GBE_ERROR("IN_SET TODO");
+		exit(-7);
 		break;
 	case IN_SLA:
 		GBE_ERROR("IN_SLA TODO");
+		exit(-7);
 		break;
 	case IN_SRA:
 		GBE_ERROR("IN_SRA TODO");
+		exit(-7);
 		break;
 	case IN_SRL:
 		GBE_ERROR("IN_SRL TODO");
+		exit(-7);
 		break;
 	case IN_STOP:
 		GBE_ERROR("IN_STOP TODO");
+		exit(-7);
 		break;
 	case IN_SUB:
 		GBE_ERROR("IN_SUB TODO");
+		exit(-7);
 		break;
 	case IN_SWAP:
 		GBE_ERROR("IN_SWAP TODO");
+		exit(-7);
 		break;
 	case IN_XOR:
 		ctx->registers.a ^= ctx->fetchedData & 0xFF;
@@ -419,6 +579,7 @@ void cpu::execute()
 		break;
 	default:
 		GBE_ERROR("Unknown instruction");
+		exit(-7);
 	}
 }
 
@@ -431,6 +592,46 @@ void cpu::setIERegister(uint8_t value)
 {
 	ctx->interruptEnableRegister = value;
 }
+
+void cpu::pushStack(uint8_t value)
+{
+	ctx->registers.stackCounter--;
+	m_bus->write(ctx->registers.stackCounter, value);
+}
+
+void cpu::pushStack(uint16_t value)
+{
+	ctx->registers.stackCounter--;
+	m_bus->write(ctx->registers.stackCounter, uint8_t((value >> 8) & 0xFF));
+	ctx->registers.stackCounter--;
+	m_bus->write(ctx->registers.stackCounter, uint8_t(value & 0xFF));
+}
+
+void cpu::pushStack(uint16_t high, uint16_t low)
+{
+	ctx->registers.stackCounter--;
+	m_bus->write(ctx->registers.stackCounter, uint8_t((high >> 8) & 0xFF));
+	ctx->registers.stackCounter--;
+	m_bus->write(ctx->registers.stackCounter, uint8_t(low & 0xFF));
+}
+
+uint16_t cpu::popStack(int bits)
+{
+	if (bits == 8)
+	{
+		return m_bus->read(ctx->registers.stackCounter++);
+	}
+	else if (bits == 16)
+	{
+		uint16_t lo = m_bus->read(ctx->registers.stackCounter++);
+		uint16_t hi = m_bus->read(ctx->registers.stackCounter++);
+
+		return (hi << 8) | lo;
+	}
+	
+}
+
+
 
 uint16_t cpu::readRegistry(registryType rt)
 {

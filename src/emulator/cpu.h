@@ -46,11 +46,17 @@ public:
 	cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions, std::shared_ptr <cartridgeLoader> loader);
 	void init();
 	bool step();
+	void goToAddress(std::weak_ptr<cpuContext> ctx, uint16_t address, bool pushPC);
 	void fetchInstruction();
 	void fetchData();
 	void execute();
 	uint8_t getIERegister();
 	void setIERegister(uint8_t value);
+	void pushStack(uint8_t value);
+	void pushStack(uint16_t value);
+	void pushStack(uint16_t high, uint16_t low);
+	uint16_t popStack(int bits = 8);
+
 protected:
 	
 	uint16_t readRegistry(registryType rt);
@@ -58,6 +64,7 @@ protected:
 	uint16_t reverse(uint16_t n);
 	static bool checkCondition(std::weak_ptr<cpuContext> ctx);
 	void setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c);
+	//TODO: create functions for each cpu flag
 private:
 	std::shared_ptr <cpuContext> ctx;
 	std::shared_ptr <bus> m_bus;
