@@ -17,7 +17,9 @@ public:
 	interrupts(std::shared_ptr <cpu> cpu);
 	
 	void requestInterrupts(interruptType type);
-	void handleInterrupts(std::weak_ptr<cpuContext> ctx, uint16_t address);
+	void handleInterrupts(std::weak_ptr<cpuContext> ctx);
+	bool checkInterrupt(std::weak_ptr<cpuContext> ctx, uint16_t address, interruptType type);
 private:
+	void handleInterrupt(std::weak_ptr<cpuContext> ctx, uint16_t address);
 	std::shared_ptr <cpu> m_cpu;
 };
