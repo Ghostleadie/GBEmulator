@@ -122,6 +122,14 @@ FetchContent_Declare(
   GIT_PROGRESS   TRUE
   #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/SDL2_ttf
 )
+#FetchContent_GetProperties(SDL2_ttf)
+#if(NOT sdl2_ttfPOPULATED)
+#  FetchContent_Populate(SDL2_ttf)
+#  message(STATUS "Catch source dir: ${sdl2_ttf_SOURCE_DIR}")
+#  message(STATUS "Catch binary dir: ${sdl2_ttf_BINARY_DIR}")
+#  add_subdirectory(${sdl2_ttf_SOURCE_DIR} ${sdl2_ttf_BINARY_DIR})
+#endif()
+
 message("Fetching SDL_ttf")
 
 FetchContent_MakeAvailable(SDL2_ttf)
