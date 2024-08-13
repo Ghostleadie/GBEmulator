@@ -4,6 +4,7 @@
 
 class bus;
 class cartridgeLoader;
+class interrupts;
 
 struct cpuRegisters
 {
@@ -46,7 +47,7 @@ class cpu
 {
 public:
 	cpu() {};
-	cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions, std::shared_ptr <cartridgeLoader> loader);
+	cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions, std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <interrupts> interrupts);
 	void init();
 	bool step();
 	void goToAddress(std::weak_ptr<cpuContext> ctx, uint16_t address, bool pushPC);
@@ -114,6 +115,8 @@ private:
 	void instructionSUB();
 	void instructionXOR();
 
+private:
+	std::shared_ptr <interrupts> m_interrupts;
 	std::shared_ptr <cpuContext> ctx;
 	std::shared_ptr <bus> m_bus;
 	std::shared_ptr <instructions> m_instructions;

@@ -1,15 +1,18 @@
 #include "cpu.h"
+#include "interrupts.h"
 #include "../bus.h"
 #include "../emulator.h"
 #include "spdlog/fmt/bin_to_hex.h"
 #include <format>
 
-cpu::cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions, std::shared_ptr <cartridgeLoader> cartridgeLoader)
+
+cpu::cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions, std::shared_ptr <cartridgeLoader> cartridgeLoader, std::shared_ptr <interrupts> interrupts)
 {
 	m_bus = bus;
 	m_instructions = instructions;
 	m_loader = cartridgeLoader;
 	ctx = std::make_shared<cpuContext>();
+	m_interrupts = interrupts;
 }
 
 void cpu::init()
@@ -39,7 +42,10 @@ bool cpu::step()
 {
 	if (!ctx->halted)
 	{
+		uint16_t programCount = ctx->registers.programCounter;
+
 		fetchInstruction();
+		emulation::cycles(1);
 		fetchData();
 		GBE_INFO("current instruction type: {} A: {} BC: {}{} DE: {}{} HL: {}{}", utility::uint8ToHex(ctx->currentOpcode), utility::uint8ToHex(ctx->registers.a), utility::uint8ToHex(ctx->registers.b), utility::uint8ToHex(ctx->registers.c), utility::uint8ToHex(ctx->registers.d), utility::uint8ToHex(ctx->registers.e), utility::uint8ToHex(ctx->registers.h), utility::uint8ToHex(ctx->registers.l));
 
@@ -47,6 +53,7 @@ bool cpu::step()
 	}
 	else
 	{
+		//halted
 		emulation::cycles(1);
 		if (ctx->interruptFlags)
 		{
@@ -56,7 +63,7 @@ bool cpu::step()
 
 	if (ctx->masterInterruptEnabled)
 	{
-		//handleInterrupts(&ctx);
+		m_interrupts->handleInterrupts(ctx);
 		ctx->enableIME = false;
 	}
 

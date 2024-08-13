@@ -39,7 +39,7 @@ void cpu::instructionLD(std::weak_ptr<bus> bus)
         uint8_t cflag = (readRegistry(ctx->currentInstruction.reg2) & 0xFF) + (ctx->fetchedData & 0xFF) >= 0x100;
         
         setFlags(ctx, 0, 0, hflag, cflag);
-        setRegistry(ctx->currentInstruction.reg1, static_cast<uint16_t>(readRegistry(ctx->currentInstruction.reg2) + static_cast<char>(ctx->fetchedData));
+        setRegistry(ctx->currentInstruction.reg1, static_cast<uint16_t>(readRegistry(ctx->currentInstruction.reg2) + static_cast<char>(ctx->fetchedData)));
 
         return;
     }

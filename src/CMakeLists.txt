@@ -3,7 +3,7 @@
 #
 
 # Add source to this project's executable.
-add_executable (GBEmulator "emulator/main.cpp" "emulator/main.h" "log/Log.cpp" "log/Log.h" "emulator/bus.cpp" "emulator/bus.h" "emulator/cartridge.cpp" "emulator/cartridge.h" "emulator/cpu/cpu.cpp" "emulator/cpu/cpu.h" "emulator/ppu.cpp" "emulator/timer.cpp" "emulator/ppu.h" "emulator/timer.h" "emulator/emulator.cpp" "emulator/emulator.h" "emulator/instructions.h" "emulator/instructions.cpp" "emulator/utility/utility.h" "emulator/memory.h" "emulator/memory.cpp" "emulator/cpu/cpuInstructions.cpp" "emulator/cpu/interrupts.h" "emulator/cpu/interrupts.cpp" "emulator/display/ui.h" "emulator/display/ui.cpp")
+add_executable (GBEmulator "emulator/main.cpp" "emulator/main.h" "log/Log.cpp" "log/Log.h" "emulator/bus.cpp" "emulator/bus.h" "emulator/cartridge.cpp" "emulator/cartridge.h" "emulator/cpu/cpu.cpp" "emulator/cpu/cpu.h" "emulator/ppu.cpp" "emulator/timer.cpp" "emulator/ppu.h" "emulator/timer.h" "emulator/emulator.cpp" "emulator/emulator.h" "emulator/instructions.h" "emulator/instructions.cpp" "emulator/utility/utility.h" "emulator/memory.h" "emulator/memory.cpp" "emulator/cpu/cpuInstructions.cpp" "emulator/cpu/interrupts.h" "emulator/cpu/interrupts.cpp" "emulator/display/ui.h" "emulator/display/ui.cpp" "emulator/display/sdldeleter.h")
 
 #find_package(SDL2 REQUIRED)
 #find_package(SDL_ttf REQUIRED)
