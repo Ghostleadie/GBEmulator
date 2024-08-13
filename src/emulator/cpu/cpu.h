@@ -68,11 +68,11 @@ private:
 	void cbsetReg(registryType rt, uint8_t value);
 	uint16_t reverse(uint16_t n);
 	static bool checkCondition(std::weak_ptr<cpuContext> ctx);
-	void setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c);
-	void setZeroFlag(std::weak_ptr<cpuContext> ctx, char z);
-	void setSubtractFlag(std::weak_ptr<cpuContext> ctx, char n);
-	void setHalfCarryFlag(std::weak_ptr<cpuContext> ctx, char h);
-	void setCarryFlag(std::weak_ptr<cpuContext> ctx, char c);
+	void setFlags(std::weak_ptr<cpuContext> ctx, uint8_t z, uint8_t n, uint8_t h, uint8_t c);
+	void setZeroFlag(std::weak_ptr<cpuContext> ctx, uint8_t z);
+	void setSubtractFlag(std::weak_ptr<cpuContext> ctx, uint8_t n);
+	void setHalfCarryFlag(std::weak_ptr<cpuContext> ctx, uint8_t h);
+	void setCarryFlag(std::weak_ptr<cpuContext> ctx, uint8_t c);
 	void isFlagSet();
 
 	//instructions

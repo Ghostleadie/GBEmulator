@@ -643,7 +643,7 @@ bool cpu::checkCondition(std::weak_ptr<cpuContext> ctx)
 	return false;
 }
 
-void cpu::setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c)
+void cpu::setFlags(std::weak_ptr<cpuContext> ctx, uint8_t z, uint8_t n, uint8_t h, uint8_t c)
 {
 	if (auto context = ctx.lock())
 	{
@@ -661,7 +661,7 @@ void cpu::setFlags(std::weak_ptr<cpuContext> ctx, char z, char n, char h, char c
 	}
 }
 
-void cpu::setZeroFlag(std::weak_ptr<cpuContext> ctx, char z)
+void cpu::setZeroFlag(std::weak_ptr<cpuContext> ctx, uint8_t z)
 {
 	if (auto context = ctx.lock())
 	{
@@ -680,7 +680,7 @@ void cpu::setZeroFlag(std::weak_ptr<cpuContext> ctx, char z)
 	}
 }
 
-void cpu::setSubtractFlag(std::weak_ptr<cpuContext> ctx, char n)
+void cpu::setSubtractFlag(std::weak_ptr<cpuContext> ctx, uint8_t n)
 {
 	if (auto context = ctx.lock())
 	{
@@ -699,7 +699,7 @@ void cpu::setSubtractFlag(std::weak_ptr<cpuContext> ctx, char n)
 	}
 }
 
-void cpu::setHalfCarryFlag(std::weak_ptr<cpuContext> ctx, char h)
+void cpu::setHalfCarryFlag(std::weak_ptr<cpuContext> ctx, uint8_t h)
 {
 	if (auto context = ctx.lock())
 	{
@@ -718,7 +718,7 @@ void cpu::setHalfCarryFlag(std::weak_ptr<cpuContext> ctx, char h)
 	}
 }
 
-void cpu::setCarryFlag(std::weak_ptr<cpuContext> ctx, char c)
+void cpu::setCarryFlag(std::weak_ptr<cpuContext> ctx, uint8_t c)
 {
 	if (auto context = ctx.lock())
 	{

@@ -39,7 +39,7 @@ void cpu::instructionLD(std::weak_ptr<bus> bus)
         uint8_t cflag = (readRegistry(ctx->currentInstruction.reg2) & 0xFF) + (ctx->fetchedData & 0xFF) >= 0x100;
         
         setFlags(ctx, 0, 0, hflag, cflag);
-        setRegistry(ctx->currentInstruction.reg1, (uint16_t)(readRegistry(ctx->currentInstruction.reg2) + (char)ctx->fetchedData));
+        setRegistry(ctx->currentInstruction.reg1, static_cast<uint16_t>(readRegistry(ctx->currentInstruction.reg2) + static_cast<char>(ctx->fetchedData));
 
         return;
     }
@@ -134,27 +134,27 @@ void cpu::instructionADD()
 
 	if (ctx->currentInstruction.reg1 == RT_SP)
 	{
-		value = readRegistry(ctx->currentInstruction.reg1) + static_cast<char>(ctx->fetchedData);
+		value = readRegistry(ctx->currentInstruction.reg1) + static_cast<uint8_t>(ctx->fetchedData);
 	}
 
     int z = (value & 0xFF) == 0;
     int h = (readRegistry(ctx->currentInstruction.reg1) & 0xF) + (ctx->fetchedData & 0xF) >= 0x10;
-    int c = (int)(readRegistry(ctx->currentInstruction.reg1) & 0xFF) + (int)(ctx->fetchedData & 0xFF) >= 0x100;
+    int c = (int)(readRegistry(ctx->currentInstruction.reg1) & 0xFF) + static_cast<uint8_t>(ctx->fetchedData & 0xFF) >= 0x100;
 
     if (utility::isReg16Bit(ctx->currentInstruction.reg1)) {
         z = -1;
         h = (readRegistry(ctx->currentInstruction.reg1) & 0xFFF) + (ctx->fetchedData & 0xFFF) >= 0x1000;
-        uint32_t n = ((uint32_t)readRegistry(ctx->currentInstruction.reg1)) + ((uint32_t)ctx->fetchedData);
+        uint32_t n = ((uint32_t)readRegistry(ctx->currentInstruction.reg1)) + (static_cast<uint32_t>(ctx->fetchedData));
         c = n >= 0x10000;
     }
 
     if (ctx->currentInstruction.reg1 == RT_SP) {
         z = 0;
         h = (readRegistry(ctx->currentInstruction.reg1) & 0xF) + (ctx->fetchedData & 0xF) >= 0x10;
-        c = (int)(readRegistry(ctx->currentInstruction.reg1) & 0xFF) + (int)(ctx->fetchedData & 0xFF) > 0x100;
+        c = (int)(readRegistry(ctx->currentInstruction.reg1) & 0xFF) + static_cast<int>(ctx->fetchedData & 0xFF) > 0x100;
     }
 
-    setRegistry(ctx->currentInstruction.reg1, (uint16_t)(value & 0xFFFF));
+    setRegistry(ctx->currentInstruction.reg1, static_cast<uint16_t>(value & 0xFFFF));
     setFlags(ctx, z, 0, h, c);
 }
 
@@ -184,7 +184,7 @@ void cpu::instructionRLA()
 
 void cpu::instructionJR()
 {
-    char rel = (char)(ctx->fetchedData & 0xFF);
+    uint8_t rel = static_cast<uint8_t>(ctx->fetchedData & 0xFF);
     uint16_t addr = ctx->registers.programCounter + rel;
     goToAddress(ctx, addr, false);
 }
@@ -256,8 +256,8 @@ void cpu::instructionSUB()
     uint16_t val = readRegistry(ctx->currentInstruction.reg1) - ctx->fetchedData;
 
     int z = val == 0;
-    int h = ((int)readRegistry(ctx->currentInstruction.reg1) & 0xF) - ((int)ctx->fetchedData & 0xF) < 0;
-    int c = ((int)readRegistry(ctx->currentInstruction.reg1)) - ((int)ctx->fetchedData) < 0;
+    int h = static_cast<int>(readRegistry(ctx->currentInstruction.reg1) & 0xF) - static_cast<int>(ctx->fetchedData & 0xF) < 0;
+    int c = static_cast<int>(readRegistry(ctx->currentInstruction.reg1)) - static_cast<int>(ctx->fetchedData) < 0;
 
     setRegistry(ctx->currentInstruction.reg1, val);
     setFlags(ctx, z, 1, h, c);
@@ -269,10 +269,10 @@ void cpu::instructionSBC()
 
     int z = readRegistry(ctx->currentInstruction.reg1) - val == 0;
 
-    int h = ((int)readRegistry(ctx->currentInstruction.reg1) & 0xF) - ((int)ctx->fetchedData & 0xF) - ((int)utility::checkBit(ctx->registers.f, 4)) < 0;
-    int c = ((int)readRegistry(ctx->currentInstruction.reg1)) - ((int)ctx->fetchedData) - ((int)utility::checkBit(ctx->registers.f, 4)) < 0;
+    int h = static_cast<int>(readRegistry(ctx->currentInstruction.reg1) & 0xF) - static_cast<int>(ctx->fetchedData & 0xF) - static_cast<int>(utility::checkBit(ctx->registers.f, 4)) < 0;
+    int c = static_cast<int>(readRegistry(ctx->currentInstruction.reg1)) - static_cast<int>(ctx->fetchedData) - static_cast<int>(utility::checkBit(ctx->registers.f, 4)) < 0;
 
-    setRegistry(ctx->currentInstruction.reg1, (uint16_t)(readRegistry(ctx->currentInstruction.reg1) - val));
+    setRegistry(ctx->currentInstruction.reg1, static_cast<uint16_t>(readRegistry(ctx->currentInstruction.reg1) - val));
     setFlags(ctx, z, 1, h, c);
 }
 
@@ -296,9 +296,9 @@ void cpu::instructionOR()
 
 void cpu::instructionCP()
 {
-    int n = (int)ctx->registers.a - (int)ctx->fetchedData;
+    int n = static_cast<int>(ctx->registers.a) - static_cast<int>(ctx->fetchedData);
 
-    setFlags(ctx, n == 0, 1, ((int)ctx->registers.a & 0x0F) - ((int)ctx->fetchedData & 0x0F) < 0, n < 0);
+    setFlags(ctx, n == 0, 1, static_cast<int>(ctx->registers.a & 0x0F) - static_cast<int>(ctx->fetchedData & 0x0F) < 0, n < 0);
 }
 
 void cpu::instructionPOP()
@@ -314,7 +314,7 @@ void cpu::instructionPOP()
 
     if (ctx->currentInstruction.reg1 == RT_AF)
     {
-        setRegistry(ctx->currentInstruction.reg1, (uint16_t)(n & 0xFFF0));
+        setRegistry(ctx->currentInstruction.reg1, static_cast<uint16_t>(n & 0xFFF0));
     }
 }
 
@@ -415,7 +415,7 @@ void cpu::instructionCB()
         registerValue |= (old << 7);
 
         cbsetReg(reg, registerValue);
-        setFlags(ctx, !registerValue, false, false, old & 1);
+        setFlags(ctx, ~registerValue, false, false, old & 1);
     } 
          return;
 
@@ -427,7 +427,7 @@ void cpu::instructionCB()
         registerValue |= flagC;
 
         cbsetReg(reg, registerValue);
-        setFlags(ctx, !registerValue, false, false, !!(old & 0x80));
+        setFlags(ctx, ~registerValue, false, false, !!(old & 0x80));
     } 
         return;
 
@@ -440,7 +440,7 @@ void cpu::instructionCB()
         registerValue |= (flagC << 7);
 
         cbsetReg(reg, registerValue);
-        setFlags(ctx, !registerValue, false, false, old & 1);
+        setFlags(ctx, ~registerValue, false, false, old & 1);
     }
         return;
 
@@ -451,16 +451,16 @@ void cpu::instructionCB()
         registerValue <<= 1;
 
         cbsetReg(reg, registerValue);
-        setFlags(ctx, !registerValue, false, false, !!(old & 0x80));
+        setFlags(ctx, ~registerValue, false, false, !!(old & 0x80));
     }
         return;
 
     case 5: 
     {
         //SRA
-        uint8_t u = (int8_t)registerValue >> 1;
+        uint8_t u = static_cast<uint8_t>(registerValue) >> 1;
         cbsetReg(reg, u);
-        setFlags(ctx, !u, 0, 0, registerValue & 1);
+        setFlags(ctx, ~u, 0, 0, registerValue & 1);
     }
         return;
 
@@ -478,7 +478,7 @@ void cpu::instructionCB()
         //SRL
         uint8_t u = registerValue >> 1;
         cbsetReg(reg, u);
-        setFlags(ctx, !u, 0, 0, registerValue & 1);
+        setFlags(ctx, ~u, 0, 0, registerValue & 1);
     }
         return;
     }
