@@ -9,7 +9,7 @@ cpu::cpu(std::shared_ptr <bus> bus, std::shared_ptr <instructions> instructions,
 	m_bus = bus;
 	m_instructions = instructions;
 	m_loader = cartridgeLoader;
-	ctx = std::shared_ptr <cpuContext>(new cpuContext());
+	ctx = std::make_shared<cpuContext>();
 }
 
 void cpu::init()
@@ -289,9 +289,6 @@ void cpu::execute()
 	case IN_AND:
 		instructionAND();
 		break;
-	case IN_BIT:
-		instructionBIT();
-		break;
 	case IN_CALL:
 		instructionCALL();
 		break;
@@ -319,9 +316,6 @@ void cpu::execute()
 	case IN_EI:
 		instructionEI();
 		break;
-	case IN_ERR:
-		instructionERR();
-		break;
 	case IN_HALT:
 		instructionHALT();
 		break;
@@ -339,8 +333,10 @@ void cpu::execute()
 		break;
 	case IN_LD:
 		instructionLD(m_bus);
+		break;
 	case IN_LDH:
 		instructionLDH(m_bus);
+		break;
 	case IN_OR:
 		instructionOR();
 		break;
@@ -350,33 +346,20 @@ void cpu::execute()
 	case IN_PUSH:
 		instructionPUSH();
 		break;
-	case IN_RES:
-		instructionRES();
-		break;
 	case IN_RET:
 		instructionRET();
+		break;
 	case IN_RETI:
 		instructionRETI();
-	case IN_RL:
-		instructionRL();
 		break;
 	case IN_RLA:
 		instructionRLA();
 		break;
-	case IN_RLC:
-		instructionRLC();
-		break;
 	case IN_RLCA:
 		instructionRLCA();
 		break;
-	case IN_RR:
-		instructionRR();
-		break;
 	case IN_RRA:
 		instructionRRA();
-		break;
-	case IN_RRC:
-		instructionRRC();
 		break;
 	case IN_RRCA:
 		instructionRRCA();
@@ -390,26 +373,11 @@ void cpu::execute()
 	case IN_SCF:
 		instructionSCF();
 		break;
-	case IN_SET:
-		instructionSET();
-		break;
-	case IN_SLA:
-		instructionSLA();
-		break;
-	case IN_SRA:
-		instructionSRA();
-		break;
-	case IN_SRL:
-		instructionSRL();
-		break;
 	case IN_STOP:
 		instructionSTOP();
 		break;
 	case IN_SUB:
 		instructionSUB();
-		break;
-	case IN_SWAP:
-		instructionSWAP();
 		break;
 	case IN_XOR:
 		instructionXOR();
