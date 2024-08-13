@@ -1,7 +1,7 @@
 #include "emulator.h"
 #include "cartridge.h"
 #include "memory.h"
-#include "cpu.h"
+#include "cpu/cpu.h"
 #include "bus.h"
 #include "instructions.h"
 

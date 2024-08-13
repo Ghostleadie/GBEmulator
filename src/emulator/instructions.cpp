@@ -1,5 +1,5 @@
 #include "instructions.h"
-#include "cpu.h"
+#include "cpu/cpu.h"
 
 instruction::instruction()
 {
@@ -528,6 +528,45 @@ instruction instructions::instructionByOpcode(uint8_t opcode)
 char* instructions::instructionName(instructionType t)
 {
 	return nullptr;
+}
+
+registryType instructions::registryLookup(uint8_t reg)
+{
+    switch (reg)
+    {
+    case RT_NONE:
+        return RT_NONE;
+    case RT_A:
+        return RT_A;
+    case RT_F:
+        return RT_F;
+    case RT_B:
+        return RT_B;
+    case RT_C:
+        return RT_C;
+    case RT_D:
+        return RT_D;
+    case RT_E:
+        return RT_E;
+    case RT_H:
+        return RT_H;
+    case RT_L:
+        return RT_L;
+    case RT_AF:
+        return RT_AF;
+    case RT_BC:
+        return RT_BC;
+    case RT_DE:
+        return RT_DE;
+    case RT_HL:
+        return RT_HL;
+    case RT_SP:
+        return RT_SP;
+    case RT_PC:
+        return RT_PC;
+    default:
+        return RT_NONE;
+    }
 }
 
 

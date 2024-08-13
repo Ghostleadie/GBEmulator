@@ -1,6 +1,7 @@
 #pragma once
 
-enum addressMode {
+enum addressMode
+{
     AM_IMP,
     AM_R_D16,
     AM_R_R,
@@ -24,7 +25,8 @@ enum addressMode {
     AM_R_A16
 };
 
-enum registryType {
+enum registryType
+{
     RT_NONE,
     RT_A,
     RT_F,
@@ -42,7 +44,8 @@ enum registryType {
     RT_PC
 };
 
-enum instructionType {
+enum instructionType 
+{
     IN_NONE,
     IN_NOP,
     IN_LD,
@@ -93,7 +96,8 @@ enum instructionType {
     IN_SET
 };
 
-enum conditionType{
+enum conditionType
+{
     CT_NONE,
     CT_NZ,
     CT_Z,
@@ -101,7 +105,8 @@ enum conditionType{
     CT_C
 };
 
-struct instruction {
+struct instruction 
+{
     std::string name;
     instructionType type;
     addressMode mode;
@@ -121,6 +126,8 @@ public:
     instruction instructionByOpcode(uint8_t opcode);
 
     char* instructionName(instructionType t);
+
+    static registryType registryLookup(uint8_t reg);
 private:
     
 };

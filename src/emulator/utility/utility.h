@@ -34,6 +34,6 @@ namespace utility {
 	};
 	inline bool checkBit(const uint8_t value, const uint8_t bit)
 	{
-		return (value & (1 << bit)) ? true : false;
+		return (value & (1 << bit)) != 0;
 	};
 }

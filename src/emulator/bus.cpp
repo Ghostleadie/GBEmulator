@@ -1,7 +1,7 @@
 #include "bus.h"
 #include "cartridge.h"
 #include "memory.h"
-#include "cpu.h"
+#include "cpu/cpu.h"
 #include <type_traits>
 
 bus::bus(std::shared_ptr<cartridgeLoader> loader, std::shared_ptr<memory> memory)
@@ -34,7 +34,7 @@ uint8_t bus::read(uint16_t address,int bits)
 		else if (address < 0xA000)
 		{
 			//Character map data
-
+			
 		}
 		else if (address < 0xC000)
 		{
@@ -44,7 +44,7 @@ uint8_t bus::read(uint16_t address,int bits)
 		else if (address < 0xE000)
 		{
 			//Working RAM
-
+			 
 		}
 		else if (address < 0xFE00)
 		{
@@ -55,7 +55,7 @@ uint8_t bus::read(uint16_t address,int bits)
 		else if (address < 0xFEA0)
 		{
 			//DAM
-
+			return 0x0;
 		}
 		else if (address < 0xFF00)
 		{
@@ -65,7 +65,7 @@ uint8_t bus::read(uint16_t address,int bits)
 		else if (address < 0xFF80)
 		{
 			//IO
-
+			return 0x0;
 		}
 		else if (address < 0xFFFF)
 		{
@@ -111,7 +111,6 @@ void bus::write(uint16_t address, uint8_t value)
 		//reserved echo ram
 		GBE_ERROR("Trying to write into reserved memory");
 		return;
-
 	}
 	else if (address < 0xFEA0)
 	{

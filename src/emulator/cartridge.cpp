@@ -56,42 +56,25 @@ uint8_t cartridgeLoader::readCartridge(uint16_t address)
 
 std::string cartridgeLoader::getLicenseeName(int code)
 {
-    switch (code) {
-    case 0:
-        return std::string("None");
-        break;
-    case 1:
-        return std::string("Nintendo R&D1");
-        break;
-    case 8:
-        return std::string("Capcom");
-        break;
-    case 13:
-        return std::string("Electronic Arts");
-        break;
-    case 18:
-        return std::string("Hudson Soft");
-        break;
-    case 19:
-        return std::string("b-ai");
-        break;
-    case 20:
-        return std::string("kss");
-        break;
-    case 22:
-        return std::string("pow");
-        break;
-    case 24:
-        return std::string("PCM Complete");
-        break;
-    case 25:
-        return std::string("san-x");
-        break;
-    case 28:
-        return std::string("Kemco Japan");
-        break;
+    static const std::unordered_map<int, std::string> licenseeNames = {
+            {0, "None"},
+            {1, "Nintendo R&D1"},
+            {8, "Capcom"},
+            {13, "Electronic Arts"},
+            {18, "Hudson Soft"},
+            {19, "b-ai"},
+            {20, "kss"},
+            {22, "pow"},
+            {24, "PCM Complete"},
+            {25, "san-x"},
+            {28, "Kemco Japan"},
+    };
 
-    default:
-        return std::string("UNKNOWN");
+    auto it = licenseeNames.find(code);
+    if (it != licenseeNames.end()) {
+        return it->second;
+    }
+    else {
+        return "UNKNOWN";
     }
 }
