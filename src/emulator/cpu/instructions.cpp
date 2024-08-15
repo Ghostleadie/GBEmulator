@@ -1,5 +1,5 @@
 #include "instructions.h"
-#include "cpu/cpu.h"
+#include "cpu.h"
 
 instruction::instruction()
 {
@@ -525,9 +525,107 @@ instruction instructions::instructionByOpcode(uint8_t opcode)
 
 }
 
-char* instructions::instructionName(instructionType t)
+std::string instructions::getInstructionTypeName(instruction t)
 {
-	return nullptr;
+    switch (t.type)
+    {
+    case IN_NONE:
+        return std::string("NONE");
+    case IN_NOP:
+        return std::string("NOP");
+    case IN_LD:
+        return std::string("LD");
+    case IN_INC:
+        return std::string("INC");
+    case IN_DEC:
+        return std::string("DEC");
+    case IN_RLCA:
+        return std::string("RLCA");
+    case IN_ADD:
+        return std::string("ADD");
+    case IN_RRCA:
+        return std::string("RRCA");
+    case IN_STOP:
+        return std::string("STOP");
+    case IN_RLA:
+        return std::string("RLA");
+    case IN_JR:
+        return std::string("JR");
+    case IN_RRA:
+        return std::string("RRA");
+    case IN_DAA:
+        return std::string("DAA");
+    case IN_CPL:
+        return std::string("CPL");
+    case IN_SCF:
+        return std::string("SCF");
+    case IN_CCF:
+        return std::string("CCF");
+    case IN_HALT:
+        return std::string("HALT");
+    case IN_ADC:
+        return std::string("ADC");
+    case IN_SUB:
+        return std::string("SUB");
+    case IN_SBC:
+        return std::string("SBC");
+    case IN_AND:
+        return std::string("AND");
+    case IN_XOR:
+        return std::string("XOR");
+    case IN_OR:
+        return std::string("OR");
+    case IN_CP:
+        return std::string("CP");
+    case IN_POP:
+        return std::string("POP");
+    case IN_JP:
+        return std::string("JP");
+    case IN_PUSH:
+        return std::string("PUSH");
+    case IN_RET:
+        return std::string("RET");
+    case IN_CB:
+        return std::string("CB");
+    case IN_CALL:
+        return std::string("CALL");
+    case IN_RETI:
+        return std::string("RETI");
+    case IN_LDH:
+        return std::string("LDH");
+    case IN_JPHL:
+        return std::string("JPHL");
+    case IN_DI:
+        return std::string("DI");
+    case IN_EI:
+        return std::string("EI");
+    case IN_RST:
+        return std::string("RST");
+    case IN_ERR:
+        return std::string("ERR");
+    case IN_RLC:
+        return std::string("RLC");
+    case IN_RRC:
+        return std::string("RRC");
+    case IN_RL:
+        return std::string("RL");
+    case IN_RR:
+        return std::string("RR");
+    case IN_SLA:
+        return std::string("SLA");
+    case IN_SRA:
+        return std::string("SRA");
+    case IN_SWAP:
+        return std::string("SWAP");
+    case IN_SRL:
+        return std::string("SRL");
+    case IN_BIT:
+        return std::string("BIT");
+    case IN_RES:
+        return std::string("RES");
+    case IN_SET:
+        return std::string("SET");
+    }
 }
 
 registryType instructions::registryLookup(uint8_t reg)

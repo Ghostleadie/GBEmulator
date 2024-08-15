@@ -4,7 +4,8 @@
 #include "cpu/interrupts.h"
 #include "display/ui.h"
 #include "emulator.h"
-#include "instructions.h"
+#include "cpu/instructions.h"
+#include "input/io.h"
 #include "memory.h"
 #include <future>
 
@@ -16,14 +17,15 @@ void emulation::initEmulator()
     m_loader = std::make_shared<cartridgeLoader>();
     m_memory = std::make_shared <memory>();
     m_instructions = std::make_shared<instructions>();
-    m_bus = std::make_shared<bus>(m_loader, m_memory);
     m_interrupts = std::make_shared<interrupts>();
+    m_io = std::make_shared<io>();
+    m_bus = std::make_shared<bus>(m_loader, m_memory, m_io);
     m_cpu = std::make_shared<cpu>(m_bus, m_instructions, m_loader, m_interrupts);
     //work around will find a better solution later
     m_bus->connectCPU(m_cpu);
     m_interrupts->ConnectCPU(m_cpu);
     
-  
+    
 }
 
 void* emulation::runCPU()
@@ -51,6 +53,7 @@ void* emulation::runCPU()
 
 int emulation::runEmulator(int argc, char** argv)
 {
+
     if (argc < 2) {
         GBE_INFO("Error no ROMS available");
         return -1;
@@ -90,6 +93,11 @@ void emulation::delay(uint32_t ms)
 void emulation::cycles(int cpuCycles)
 {
 
+}
+
+entt::registry& emulation::get_registry()
+{
+    return m_registry;
 }
 
 emulator::emulator()

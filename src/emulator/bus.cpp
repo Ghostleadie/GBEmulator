@@ -2,19 +2,22 @@
 #include "cartridge.h"
 #include "memory.h"
 #include "cpu/cpu.h"
+#include "input/io.h"
 #include <type_traits>
 
-bus::bus(std::shared_ptr<cartridgeLoader> loader, std::shared_ptr<memory> memory)
+bus::bus(std::shared_ptr<cartridgeLoader> loader, std::shared_ptr<memory> memory, std::shared_ptr<io> io)
 {
 	m_loader = loader;
 	m_memory = memory;
+	m_io = io;
 }
 
-bus::bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory, std::shared_ptr <cpu> cpu)
+bus::bus(std::shared_ptr <cartridgeLoader> loader, std::shared_ptr <memory> memory, std::shared_ptr <cpu> cpu, std::shared_ptr<io> io)
 {
 	m_loader = loader;
 	m_memory = memory;
 	m_cpu = cpu;
+	m_io = io;
 }
 
 void bus::connectCPU(std::shared_ptr<cpu> cpu)
@@ -65,7 +68,7 @@ uint8_t bus::read(uint16_t address,int bits)
 		else if (address < 0xFF80)
 		{
 			//IO
-			return 0x0;
+			return m_io->read(m_cpu,address);
 		}
 		else if (address < 0xFFFF)
 		{
@@ -126,7 +129,7 @@ void bus::write(uint16_t address, uint8_t value)
 	else if (address < 0xFF80)
 	{
 		//IO
-
+		m_io->write(m_cpu, address, value);
 	}
 	else if (address < 0xFFFF)
 	{

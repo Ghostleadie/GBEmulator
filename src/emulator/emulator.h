@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include "SDL.h"
+#include "entt/entt.hpp"
 
 class cartridgeLoader;
 class memory;
@@ -9,6 +10,7 @@ class bus;
 class instructions;
 class ui;
 class interrupts;
+class io;
 
 struct emulator
 {
@@ -36,7 +38,13 @@ public:
 	void delay(uint32_t ms);
 
 	static void cycles(int cpuCycles);
+	
+	entt::registry& get_registry();
+
 private:
+	entt::registry m_registry;
+	//std::map<std::string, std::shared_ptr<c>>
+
 	std::shared_ptr<emulator> m_emulator;
 	std::shared_ptr<cartridgeLoader> m_loader;
 	std::shared_ptr<cpu> m_cpu;
@@ -45,5 +53,5 @@ private:
 	std::shared_ptr<memory> m_memory;
 	std::shared_ptr<ui> m_ui;
 	std::shared_ptr<interrupts> m_interrupts;
-
+	std::shared_ptr<io> m_io;
 };

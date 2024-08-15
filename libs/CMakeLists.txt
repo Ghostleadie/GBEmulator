@@ -38,7 +38,6 @@ if(NOT imgui_POPULATED)
         ${imgui_SOURCE_DIR}/imgui_widgets.cpp
         ${imgui_SOURCE_DIR}/imgui_tables.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.h
@@ -56,30 +55,10 @@ if(NOT imgui_POPULATED)
         ${glfw_SOURCE_DIR}/include
         ${sdl2_SOURCE_DIR}/include/sdl/include)
 
-    target_link_libraries(imgui PRIVATE glfw)
     target_link_libraries(imgui PUBLIC SDL2::SDL2)
 endif ()
 
 FetchContent_MakeAvailable(imgui)
-
-#----------------------------------------------------------------------
-
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(GLFW_LIBRARY_TYPE "Link glfw static or dynamic" STATIC)
-option(GLFW_BUILD_TESTS "" OFF)
-option(GLFW_BUILD_DOCS "" OFF)
-option(GLFW_INSTALL "" OFF)
-option(GLFW_BUILD_EXAMPLES "" OFF)
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw
-    GIT_TAG        3.3.8
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
-    #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/glfw
-)
-message("Fetching glfw")
-FetchContent_MakeAvailable(glfw)
 
 #----------------------------------------------------------------------
 
@@ -122,26 +101,21 @@ FetchContent_Declare(
   GIT_PROGRESS   TRUE
   #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/SDL2_ttf
 )
-#FetchContent_GetProperties(SDL2_ttf)
-#if(NOT sdl2_ttfPOPULATED)
-#  FetchContent_Populate(SDL2_ttf)
-#  message(STATUS "Catch source dir: ${sdl2_ttf_SOURCE_DIR}")
-#  message(STATUS "Catch binary dir: ${sdl2_ttf_BINARY_DIR}")
-#  add_subdirectory(${sdl2_ttf_SOURCE_DIR} ${sdl2_ttf_BINARY_DIR})
-#endif()
 
 message("Fetching SDL_ttf")
 
 FetchContent_MakeAvailable(SDL2_ttf)
-#FetchContent_GetProperties(SDL2)
-#if(NOT sdl2_POPULATED)
-#  FetchContent_Populate(SDL2)
-#  message(STATUS "Catch source dir: ${sdl2_SOURCE_DIR}")
-#  message(STATUS "Catch binary dir: ${sdl2_BINARY_DIR}")
-#  add_subdirectory(${sdl2_SOURCE_DIR} ${sdl2_BINARY_DIR})
-#endif()
 
+#----------------------------------------------------------------------
 
-#list(APPEND SDL2_LIBRARIES ${PROJECT_SOURCE_DIR}/build/Debug/SDL2maind.lib)
-#list(APPEND SDL2_LIBRARIES ${PROJECT_SOURCE_DIR}/build/Debug/SDL2-staticd.lib)
-#list(APPEND SDL2_LIBRARIES ${PROJECT_SOURCE_DIR}/build/Debug/SDL2d.lib)
+FetchContent_Declare(
+  entt
+  GIT_REPOSITORY "https://github.com/skypjack/entt.git"
+  GIT_TAG  v3.13.2
+  GIT_PROGRESS   TRUE
+  #SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/SDL2_ttf
+)
+
+message("Fetching entt")
+
+FetchContent_MakeAvailable(entt)

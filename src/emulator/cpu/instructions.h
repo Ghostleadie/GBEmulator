@@ -125,7 +125,7 @@ public:
     instructions() {}
     instruction instructionByOpcode(uint8_t opcode);
 
-    char* instructionName(instructionType t);
+    std::string getInstructionTypeName(instruction t);
 
     static registryType registryLookup(uint8_t reg);
 private:

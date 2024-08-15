@@ -1,10 +1,11 @@
 #pragma once
 
-#include "../instructions.h"
+#include "instructions.h"
 
 class bus;
 class cartridgeLoader;
 class interrupts;
+class Timer;
 
 struct cpuRegisters
 {
@@ -121,4 +122,6 @@ private:
 	std::shared_ptr <bus> m_bus;
 	std::shared_ptr <instructions> m_instructions;
 	std::shared_ptr <cartridgeLoader> m_loader;
+	std::shared_ptr <Timer> m_timer;
+
 };
