@@ -57,12 +57,7 @@ bool cpu::step()
 			ctx->registers.f & (1 << 4) ? 'C' : '-'
 		);
 
-		/*GBE_LINE("%08lX - %04X: %-12s (%02X %02X %02X) A: %02X F: %s BC: %02X%02X DE: %02X%02X HL: %02X%02X\n",
-			emu_get_context()->ticks,
-			pc, inst, ctx.cur_opcode,
-			bus_read(pc + 1), bus_read(pc + 2), ctx.regs.a, flags, ctx.regs.b, ctx.regs.c,
-			ctx.regs.d, ctx.regs.e, ctx.regs.h, ctx.regs.l)*/
-		GBE_INFO("current instruction: {} Opcode: {} A: {} BC: {} {} DE: {} {} HL: {} {}", m_instructions->getInstructionTypeName(ctx->currentInstruction), ctx->currentInstruction.name, utility::uint8ToHex(ctx->registers.a), utility::uint8ToHex(ctx->registers.b), utility::uint8ToHex(ctx->registers.c), utility::uint8ToHex(ctx->registers.d), utility::uint8ToHex(ctx->registers.e), utility::uint8ToHex(ctx->registers.h), utility::uint8ToHex(ctx->registers.l));
+		GBE_INFO("current instruction: {} Opcode: {} A: {} F: {} BC: {} {} DE: {} {} HL: {} {}", m_instructions->getInstructionTypeName(ctx->currentInstruction), ctx->currentInstruction.name, utility::uint8ToHex(ctx->registers.a), flags, utility::uint8ToHex(ctx->registers.b), utility::uint8ToHex(ctx->registers.c), utility::uint8ToHex(ctx->registers.d), utility::uint8ToHex(ctx->registers.e), utility::uint8ToHex(ctx->registers.h), utility::uint8ToHex(ctx->registers.l));
 
 		dbg_update(m_bus);
 		dbg_print();
