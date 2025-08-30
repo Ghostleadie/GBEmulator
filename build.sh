@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+# Create build directory
+mkdir -p build
+cd build
+
+# Configure and build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j$(nproc)
