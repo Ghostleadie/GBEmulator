@@ -1,89 +1,94 @@
-#include "SDL3/SDL.h"
-#include "SDL3_ttf/SDL_ttf.h"
-#include <spdlog/spdlog.h>
+#define SDL_MAIN_USE_CALLBACKS 1
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <nfd.h>
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
+// main.cpp
 
-int main(int, char**)
+/* We will use this renderer to draw into this window every frame. */
+static SDL_Window *window = NULL;
+static SDL_Renderer *renderer = NULL;
+
+/* This function runs once at startup. */
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
-    // Init SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        spdlog::error("SDL_Init Error: {}", SDL_GetError());
-        return -1;
+    SDL_SetAppMetadata("GameBoy Emulator", "0.0.1", "com.emulator.gameboy");
+    log::Init();
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        //LOG_ERROR("SDL_Init Error: {}", SDL_GetError());
+        SDL_Log("\033[31mCouldn't initialize SDL: %s \033[0m", SDL_GetError());
+        return SDL_APP_FAILURE;
     }
-    if (TTF_Init() == -1) {
-        //spdlog::error("TTF_Init Error: {}", TTF_GetError());
-        return -1;
+    LOG_INFO("SDL initialized");
+    if (!TTF_Init()) {
+        SDL_Log("\033[31mCouldn't initialize SDL_ttf: %s \033[0m", SDL_GetError());
+        return SDL_APP_FAILURE;
     }
-
-    NFD_Init();
-
-    SDL_Window* window = SDL_CreateWindow("My ImGui + SDL3 App", 1280, 720, SDL_WINDOW_RESIZABLE);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, NULL);
-
-    // Init ImGui
+    LOG_INFO("SDL_ttf initialized");
+    if (!SDL_CreateWindowAndRenderer("GameBoy Emulator", 640, 480, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
+        SDL_Log("\033[31mCouldn't create window/renderer: %s\033[0m", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    LOG_INFO("SDL Window and Renderer created");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
+    NFD_Init();
+    return SDL_APP_CONTINUE;  /* carry on with the program! */
+}
 
-    bool running = true;
-    SDL_Event event;
-
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL3_ProcessEvent(&event);
-            if (event.type == SDL_EVENT_QUIT)
-                running = false;
-        }
-
-        ImGui_ImplSDLRenderer3_NewFrame();
-        ImGui_ImplSDL3_NewFrame();
-        ImGui::NewFrame();
-
-        // Example UI
-        ImGui::Begin("Hello, world!");
-        ImGui::Text("This is an ImGui + SDL2 + SDL_ttf example.");
-        if (ImGui::Button("Open File...")) {
-            nfdchar_t* outPath = nullptr;
-            // Add file filters for a better user experience
-            nfdfilteritem_t filters[] = { { "Source Files", "c,cpp,cc,h,hpp" }, { "All Files", "*" } };
-            nfdresult_t result = NFD_OpenDialog(&outPath, filters, 2, nullptr);
-
-            if (result == NFD_OKAY) {
-                spdlog::info("Selected file: {}", outPath);
-                NFD_FreePath(outPath);  // Use NFD_FreePath instead of free
-            }
-            else if (result == NFD_CANCEL) {
-                spdlog::info("User canceled file dialog");
-            }
-            else {
-                spdlog::error("Error opening file dialog: {}", NFD_GetError());
-            }
-        }
-        ImGui::End();
-
-        // Render
-        ImGui::Render();
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
-        SDL_RenderPresent(renderer);
+/* This function runs when a new event (mouse input, keypresses, etc) occurs. */
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
+{
+    if (event->type == SDL_EVENT_QUIT) {
+        return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
     }
+    return SDL_APP_CONTINUE;  /* carry on with the program! */
+}
 
-    // Cleanup
+/* This function runs once per frame, and is the heart of the program. */
+SDL_AppResult SDL_AppIterate(void *appstate)
+{
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("Hello, world!");
+    ImGui::Text("This is an ImGui + SDL3 + SDL_ttf example.");
+    if (ImGui::Button("Open File...")) {
+        nfdchar_t* outPath = nullptr;
+        nfdfilteritem_t filters[] = { { "Source Files", "c,cpp,cc,h,hpp" }, { "All Files", "*" } };
+        nfdresult_t result = NFD_OpenDialog(&outPath, filters, 2, nullptr);
+
+        if (result == NFD_OKAY) {
+            NFD_FreePath(outPath);
+        }
+    }
+    ImGui::End();
+
+    ImGui::Render();
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
+    SDL_RenderPresent(renderer);
+    SDL_Delay(16); // ~60 FPS
+
+    return SDL_APP_CONTINUE;  /* carry on with the program! */
+}
+
+/* This function runs once at shutdown. */
+void SDL_AppQuit(void *appstate, SDL_AppResult result)
+{
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
     NFD_Quit();
     TTF_Quit();
     SDL_Quit();
-
-    return 0;
+    /* SDL will clean up the window/renderer for us. */
 }
