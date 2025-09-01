@@ -18,7 +18,7 @@ if(NOT imgui_FOUND)
     FetchContent_Declare(
       imgui
       GIT_REPOSITORY https://github.com/ocornut/imgui.git
-      GIT_TAG master
+      GIT_TAG docking
     )
     FetchContent_MakeAvailable(imgui)
       add_library(imgui STATIC
@@ -49,18 +49,6 @@ if(NOT imgui_FOUND)
 
     add_library(imgui::imgui ALIAS imgui)
 endif ()
-
-# Freetype
-# find_package(Freetype QUIET)
-#if(NOT Freetype_FOUND)
-#  message(STATUS "Freetype not found, fetching...")
-#  FetchContent_Declare(
-#          freetype
-#          GIT_REPOSITORY https://github.com/freetype/freetype.git
-#          GIT_TAG VER-2-13-2
-#  )
-#  FetchContent_MakeAvailable(freetype)
-#endif()
 
 # SDL
 find_package(SDL QUIET)
@@ -95,4 +83,16 @@ if(NOT nfd_FOUND)
       GIT_TAG master
     )
     FetchContent_MakeAvailable(nfd)
+endif()
+
+#nlohmann_json
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    message(STATUS "nlohmann_json not found, fetching...")
+    FetchContent_Declare(
+        nlohmann_json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        git_tag v3.12.0
+    )
+    FetchContent_MakeAvailable(nlohmann_json)
 endif()
