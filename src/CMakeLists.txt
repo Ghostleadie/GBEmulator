@@ -3,8 +3,8 @@
 add_executable(GameBoyEmulator main.cpp
         log/Log.cpp
         log/Log.cpp
-        Components/Component.cpp
-        Components/Component.h
+        Components/base/component.cpp
+        Components/base/component.h
         Emulator.cpp
         Emulator.h
         UI/debugUI.cpp
@@ -13,8 +13,8 @@ add_executable(GameBoyEmulator main.cpp
         UI/mainMenu.h
         UI/pauseMenu.cpp
         UI/pauseMenu.h
-        Components/ComponentMessanger.cpp
-        Components/componentMessanger.h
+        Components/base/componentMessanger.cpp
+        Components/base/componentMessanger.h
         Components/cpu/cpu.cpp
         Components/cpu/cpu.h
         Components/cartridgeLoader.cpp
