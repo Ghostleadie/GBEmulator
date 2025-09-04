@@ -4,6 +4,7 @@
 
 #ifndef GAMEBOYEMULATOR_CARTRIDGELOADER_H
 #define GAMEBOYEMULATOR_CARTRIDGELOADER_H
+#include "../interfaces/ICartridgeDebug.h"
 #include "base/component.h"
 
 
@@ -33,10 +34,11 @@ struct cartridgeContext
 	cartirdge* header = nullptr;
 };
 
-class cartridgeLoader : public memoryComponent
+class cartridgeLoader : public memoryComponent, public ICartridgeDebug
 {
 public:
-
+	cartridgeLoader() = default;
+	~cartridgeLoader() override = default;
 	/*
 	/
 	*/
@@ -53,7 +55,7 @@ public:
 	*/
 	std::string getLicenseeName(int code) const;
 
-	const cartridgeContext& getContext() const { return ctx; }
+	const cartridgeContext& peekCartridgeContext() const override {return ctx;}
 private:
 
 	cartridgeContext ctx;

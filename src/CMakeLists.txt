@@ -32,7 +32,13 @@ add_executable(GameBoyEmulator main.cpp
         Components/apu.h
         Components/cpu/opcodes.cpp
         Components/cpu/opcodes.h
-        Components/cpu/opcodes.h)
+        Components/cpu/opcodes.h
+        interfaces/ICPUDebug.h
+        interfaces/IBusDebug.h
+        interfaces/ICartridgeDebug.h
+        interfaces/IDebugObserver.h
+        UI/debugpanels/cartridgedebugUI.cpp
+        UI/debugpanels/cartridgedebugUI.h)
 
 target_precompile_headers(GameBoyEmulator PUBLIC pch.h)
 

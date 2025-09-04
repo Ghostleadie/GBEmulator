@@ -50,8 +50,12 @@ if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 {
 	ImGui_ImplSDL3_ProcessEvent(event);
-	if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_TILDE)
+	if (event->type == SDL_EVENT_KEY_DOWN)
 	{
+		if (event->key.key == SDLK_GRAVE)
+		{
+			emu.debugUIActive = !emu.debugUIActive;
+		}
 
 	}
     if (event->type == SDL_EVENT_QUIT) {

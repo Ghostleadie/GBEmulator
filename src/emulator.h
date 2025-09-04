@@ -4,6 +4,7 @@
 
 #ifndef GAMEBOYEMULATOR_EMULATOR_H
 #define GAMEBOYEMULATOR_EMULATOR_H
+#include "UI/debugUI.h"
 #include "UI/mainMenu.h"
 
 class timer;
@@ -25,9 +26,21 @@ enum emulatorStates
 class emulator
 {
 public:
+	emulator() : m_debugUI() {};
+	~emulator() = default;
 	void initalizeEmulator();
 	void runEmulator();
 
+	const std::shared_ptr<cpu>& getCPU() const { return m_cpu; }
+	const std::shared_ptr<cartridgeLoader>& getCartridge() const { return m_cartridge; }
+	const std::shared_ptr<bus>& getBus() const { return m_bus; }
+	const std::shared_ptr<apu>& getAPU() const { return m_apu; }
+	const std::shared_ptr<joypad>& getJoypad() const { return m_joypad; }
+	const std::shared_ptr<ppu>& getPPU() const { return m_ppu; }
+	const std::shared_ptr<timer>& getTimer() const { return m_timer;}
+
+public:
+	bool debugUIActive = false;
 private:
 	bool romLoaded = false;
 	bool mainmenuActive = true;
@@ -40,7 +53,8 @@ private:
 	std::shared_ptr<joypad> m_joypad;
 	std::shared_ptr<ppu> m_ppu;
 	std::shared_ptr<timer> m_timer;
-	mainMenu menu;
+	mainMenu m_menu;
+	debugUI m_debugUI;
 };
 
 

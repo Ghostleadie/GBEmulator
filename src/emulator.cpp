@@ -4,13 +4,13 @@
 
 #include "emulator.h"
 
-#include "Components/apu.h"
-#include "Components/bus.h"
-#include "Components/cartridgeLoader.h"
-#include "Components/joypad.h"
-#include "Components/ppu.h"
-#include "Components/timer.h"
-#include "Components/cpu/cpu.h"
+#include "components/apu.h"
+#include "components/bus.h"
+#include "components/cartridgeLoader.h"
+#include "components/joypad.h"
+#include "components/ppu.h"
+#include "components/timer.h"
+#include "components/cpu/cpu.h"
 
 void emulator::initalizeEmulator()
 {
@@ -25,8 +25,9 @@ void emulator::initalizeEmulator()
 
 	m_bus->connectComponents(m_cartridge, m_apu, m_joypad, m_ppu, m_timer);
 
-	menu.init();
+	m_menu.init();
 	m_cpu->init();
+	m_debugUI = debugUI(m_cartridge);
 }
 
 void emulator::runEmulator()
@@ -37,7 +38,7 @@ void emulator::runEmulator()
 		{
 			if (mainmenuActive == true)
 			{
-				mainmenuActive = menu.openMainMenu(filepath);
+				mainmenuActive = m_menu.openMainMenu(filepath);
 			}
 			if (!filepath.empty())
 			{
@@ -55,6 +56,11 @@ void emulator::runEmulator()
 			m_cpu->emulateCycle();
 			break;
 		}
+	}
+
+	if (debugUIActive)
+	{
+		m_debugUI.UpdateUIPanels();
 	}
 	//m_cartridge->loadCartridge(filepath);
 }
