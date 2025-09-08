@@ -6,7 +6,7 @@
 
 #include <fstream>
 
-bool cartridgeLoader::loadCartridge(std::string cartridgePath)
+bool cartridgeLoader::loadCartridge(const std::string cartridgePath)
 {
 	LOG_INFO("rom path: {}",cartridgePath);
 	std::ifstream cartridgeFile;
@@ -18,14 +18,14 @@ bool cartridgeLoader::loadCartridge(std::string cartridgePath)
 	}
 
 	cartridgeFile.seekg(0, std::ifstream::end);
-	ctx.romSize = (unsigned long)cartridgeFile.tellg();
+	ctx.romSize = static_cast<unsigned long>(cartridgeFile.tellg());
 	cartridgeFile.seekg(0, std::ifstream::beg);
 
 	ctx.romData = new char[ctx.romSize];
 	cartridgeFile.read(ctx.romData, ctx.romSize);
 	cartridgeFile.close();
 
-	ctx.header = (cartirdge*)(ctx.romData + 0x100);
+	ctx.header = reinterpret_cast<cartirdge*>(ctx.romData + 0x100);
 	ctx.header->title[15] = 0;
 
 	LOG_INFO("Cartridge Loaded:\n");

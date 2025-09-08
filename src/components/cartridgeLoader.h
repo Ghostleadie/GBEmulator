@@ -42,13 +42,13 @@ public:
 	/*
 	/
 	*/
-	bool loadCartridge(std::string cartridge);
+	bool loadCartridge(const std::string cartridge);
 
 	// Read a byte from a device-local address (offset from base).
-	uint8_t read(uint16_t address);
+	uint8_t read(uint16_t address) override;
 
 	// Write a byte to a device-local address (offset from base).
-	void write(uint16_t address, uint8_t value);
+	void write(uint16_t address, uint8_t value) override;
 
 	/*
 	/
