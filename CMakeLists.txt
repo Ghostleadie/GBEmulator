@@ -16,9 +16,9 @@ if (POLICY CMP0141)
 endif()
 
 # Output directories
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Dependencies - check if directory exists
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs)
@@ -33,7 +33,3 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src)
 else()
     message(ERROR "src directory not found - cannot build project")
 endif()
-
-# Enable testing
-enable_testing()
-
