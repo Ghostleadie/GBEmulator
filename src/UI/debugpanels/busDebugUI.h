@@ -1,0 +1,15 @@
+﻿//
+// Created by Jack_ on 05/09/2025.
+//
+
+#ifndef GAMEBOYEMULATOR_BUSDEBUGUI_H
+#define GAMEBOYEMULATOR_BUSDEBUGUI_H
+
+
+class busDebugUI
+{
+
+};
+
+
+#endif //GAMEBOYEMULATOR_BUSDEBUGUI_H

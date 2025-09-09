@@ -20,7 +20,7 @@ bool mainMenu::openMainMenu(std::string& filepath)
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-
+	ImGui::SetNextWindowSize(ImVec2(150, 250), ImGuiCond_FirstUseEver);
 	ImGui::Begin("GameBoy Emulator", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 	if (ImGui::Button("Load Rom")) {
 		nfdu8char_t* outPath;

@@ -3,7 +3,7 @@
 //
 
 #include "bus.h"
-
+#include "../Utility/utility.h"
 #include "cartridgeLoader.h"
 
 void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<apu>& apu, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer)
@@ -68,7 +68,19 @@ uint8_t bus::read(uint16_t address)
 		//CPU Interrupt enable register
 		//m_cpu->getIERegister();
 	}
-	//return m_memory->read(address);
+	if (utility::inRange(address, 0xC000, 0xCFFF))
+	{
+		return wram.at(address - 0xC000);
+	}
+	else if (utility::inRange(address, 0xFF80, 0xFFFE))
+	{
+		return hram.at(address - 0xFF80);
+	}
+	else
+	{
+		LOG_ERROR("invalid memory read");
+		return 0;
+	}
 	return 0;
 }
 
@@ -125,6 +137,20 @@ void bus::write(uint16_t address, uint8_t value)
 	}
 	else
 	{
-		//m_memory->write(address, value);
+		if (utility::inRange(address, 0xC000, 0xCFFF))
+		{
+			wram.at(address - 0xC000) = value;
+			return;
+		}
+		else if (utility::inRange(address, 0xFF80, 0xFFFE))
+		{
+			hram.at(address - 0xFF80) = value;
+			return;
+		}
+		else
+		{
+			LOG_ERROR("invalid memory read");
+			return;
+		}
 	}
 }

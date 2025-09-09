@@ -56,6 +56,19 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 		{
 			emu.debugUIActive = !emu.debugUIActive;
 		}
+		if (event->key.key == SDLK_SPACE && emu.state != EMU_STATE_MENU)
+		{
+			if (emu.state == EMU_STATE_RUNNING)
+			{
+				emu.state = EMU_STATE_PAUSED;
+				LOG_INFO("Emulator Paused");
+			}
+			else if (emu.state == EMU_STATE_PAUSED)
+			{
+				emu.state = EMU_STATE_RUNNING;
+				LOG_INFO("Emulator Running");
+			}
+		}
 
 	}
     if (event->type == SDL_EVENT_QUIT) {

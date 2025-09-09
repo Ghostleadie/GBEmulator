@@ -8,6 +8,14 @@
 
 class timer : public memoryComponent
 {
+public:
+	timer() = default;
+	~timer() override = default;
+
+private:
+	void init();
+	void tick();
+
 	// Read a byte from a device-local address (offset from base).
 	uint8_t read(uint16_t address);
 

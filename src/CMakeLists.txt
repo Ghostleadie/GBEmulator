@@ -44,8 +44,9 @@ add_executable(GameBoyEmulator main.cpp
         Utility/utility.h
         UI/debugpanels/cpuDebugUI.cpp
         UI/debugpanels/cpuDebugUI.h
-        components/cpu/opcodeFactory.cpp
-        components/cpu/opcodeFactory.h)
+        components/cpu/opcodeFunctions.cpp
+        components/cpu/opcodeFunctions.h
+)
 
 target_precompile_headers(GameBoyEmulator PUBLIC pch.h)
 

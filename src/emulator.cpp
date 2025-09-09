@@ -11,6 +11,9 @@
 #include "components/ppu.h"
 #include "components/timer.h"
 #include "components/cpu/cpu.h"
+#include "SDL3/SDL_timer.h"
+
+uint64_t emulator::ticks = 0;
 
 void emulator::initalizeEmulator()
 {
@@ -25,9 +28,8 @@ void emulator::initalizeEmulator()
 
 	m_bus->connectComponents(m_cartridge, m_apu, m_joypad, m_ppu, m_timer);
 
-	m_menu.init();
+	m_menu->init();
 	m_cpu->init();
-	m_debugUI = debugUI(m_cartridge);
 }
 
 void emulator::runEmulator()
@@ -38,7 +40,7 @@ void emulator::runEmulator()
 		{
 			if (mainmenuActive == true)
 			{
-				mainmenuActive = m_menu.openMainMenu(filepath);
+				mainmenuActive = m_menu->openMainMenu(filepath);
 			}
 			if (!filepath.empty())
 			{
@@ -56,11 +58,31 @@ void emulator::runEmulator()
 			m_cpu->emulateCycle();
 			break;
 		}
+		case EMU_STATE_PAUSED:
+		{
+			SDL_Delay(10);
+			break;
+		}
 	}
+
+	ticks++;
 
 	if (debugUIActive)
 	{
-		m_debugUI.UpdateUIPanels();
+		m_debugUI->UpdateUIPanels();
 	}
 	//m_cartridge->loadCartridge(filepath);
+}
+
+void emulator::cycles(const uint64_t cycles)
+{
+	for (int i=0; i<cycles; i++) {
+		for (int n=0; n<4; n++) {
+			emulator::ticks++;
+			//m_timer->tick();
+			//m_ppu->tick();
+		}
+
+		//tick();
+	}
 }

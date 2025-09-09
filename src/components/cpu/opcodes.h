@@ -4,6 +4,13 @@
 
 #ifndef GAMEBOYEMULATOR_OPCODES_H
 #define GAMEBOYEMULATOR_OPCODES_H
+#include <string>
+#include <memory>
+#include <functional>
+#include <unordered_map>
+#include "opcodeFunctions.h"
+
+class cpu;
 
 enum addressMode
 {
@@ -112,6 +119,7 @@ enum conditionType
 
 struct opcode
 {
+	//meta data
 	std::string name;
 	opcodeType type;
 	addressMode mode;
@@ -119,55 +127,18 @@ struct opcode
 	registryType reg2;
 	conditionType cond;
 	uint8_t param;
+	// Function pointer for execution - set by factory
+	std::function<void(cpu&)> execute;
 
-	opcode();
+	opcode() = default;
 
-	opcode(const std::string& m_name, opcodeType m_type, addressMode m_mode = AM_IMP, registryType m_reg1 = RT_NONE, registryType m_reg2 = RT_NONE, conditionType m_cond = CT_NONE, uint8_t m_param = 0);
+	opcode(const std::string& name, const opcodeType type = OP_NOP, const addressMode mode = AM_IMP, const registryType reg1 = RT_NONE, const registryType reg2 = RT_NONE, const conditionType cond = CT_NONE, const uint8_t par = 0)
+		: name(name), type(type), mode(mode), reg1(reg1), reg2(reg2), cond(cond), param(par) {};
 };
 
-/*class opcode {
-public:
-	virtual ~opcode() = default;
-	virtual void execute() const = 0;
-
-	opcode() : name(""), type(OP_NONE), mode(AM_IMP), reg1(RT_NONE), reg2(RT_NONE), cond(CT_NONE), param(0) {}
-public:
-	std::string name;
-	opcodeType type;
-	addressMode mode;
-	registryType reg1;
-	registryType reg2;
-	conditionType cond;
-	uint8_t param;
-};
-
-class nopOpcode : public opcode
-{
-public:
-	nopOpcode() = default;
-	nopOpcode(const std::string& m_name, opcodeType m_type, addressMode m_mode = AM_IMP, registryType m_reg1 = RT_NONE, registryType m_reg2 = RT_NONE, conditionType m_cond = CT_NONE, uint8_t m_param = 0)
-	{
-		name = m_name;
-		type = m_type;
-		mode = m_mode;
-		reg1 = m_reg1;
-		reg2 = m_reg2;
-		cond = m_cond;
-		param = m_param;
-	}
-	void execute() const override {
-		// NOP does nothing
-	}
-};
-
-// Factory interface for creating opcode instances
-
-class opcodeFactory
-{
-public:
-	virtual ~opcodeFactory() = default;
-	virtual std::shared_ptr<opcode> createOpcode(const std::string& m_name, opcodeType m_type, addressMode m_mode = AM_IMP, registryType m_reg1 = RT_NONE, registryType m_reg2 = RT_NONE, conditionType m_cond = CT_NONE, uint8_t m_param = 0) const = 0;
-};*/
+extern const std::unordered_map<uint8_t, opcode> opcodeTable;
+void initializeOpcodeExecution();
+opcode getOpcode(uint8_t opcode_value);
 
 
 #endif //GAMEBOYEMULATOR_OPCODES_H

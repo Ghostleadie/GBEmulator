@@ -4,6 +4,10 @@
 
 #ifndef GAMEBOYEMULATOR_EMULATOR_H
 #define GAMEBOYEMULATOR_EMULATOR_H
+#include <memory>
+#include <string>
+#include <cstdint>
+
 #include "UI/debugUI.h"
 #include "UI/mainMenu.h"
 
@@ -26,7 +30,7 @@ enum emulatorStates
 class emulator
 {
 public:
-	emulator() : m_debugUI() {};
+	emulator() : m_menu(std::make_unique<mainMenu>()), m_debugUI(std::make_unique<debugUI>()) {};
 	~emulator() = default;
 	void initalizeEmulator();
 	void runEmulator();
@@ -39,13 +43,15 @@ public:
 	const std::shared_ptr<ppu>& getPPU() const { return m_ppu; }
 	const std::shared_ptr<timer>& getTimer() const { return m_timer;}
 
+	static void cycles(uint64_t cycles);
 public:
 	bool debugUIActive = false;
+	emulatorStates state = EMU_STATE_MENU;
 private:
+	static uint64_t ticks;
 	bool romLoaded = false;
 	bool mainmenuActive = true;
 	std::string filepath;
-	emulatorStates state = EMU_STATE_MENU;
 	std::shared_ptr<cpu> m_cpu;
 	std::shared_ptr<cartridgeLoader> m_cartridge;
 	std::shared_ptr<bus> m_bus;
@@ -53,8 +59,8 @@ private:
 	std::shared_ptr<joypad> m_joypad;
 	std::shared_ptr<ppu> m_ppu;
 	std::shared_ptr<timer> m_timer;
-	mainMenu m_menu;
-	debugUI m_debugUI;
+	std::unique_ptr<mainMenu> m_menu;
+	std::unique_ptr<debugUI> m_debugUI;
 };
 
 
