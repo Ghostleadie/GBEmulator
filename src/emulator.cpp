@@ -28,6 +28,9 @@ void emulator::initalizeEmulator()
 
 	m_bus->connectComponents(m_cartridge, m_apu, m_joypad, m_ppu, m_timer);
 
+	m_debugUI = std::make_unique<debugUI>(m_cartridge,m_cpu);
+	m_menu = std::make_unique<mainMenu>();
+
 	m_menu->init();
 	m_cpu->init();
 }

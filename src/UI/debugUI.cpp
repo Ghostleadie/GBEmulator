@@ -7,7 +7,14 @@
 
 void debugUI::UpdateUIPanels()
 {
-	if (auto loader = m_Loader.lock()) {
+
+	cartridgeDebugUI.updateUI(m_Loader.lock()->peekCartridgeContext());
+	cpuDebugUI.updateUI(*m_cpu.lock());
+	/*if (auto loader = m_Loader.lock()) {
 		cartridgeDebugUI.updateUI(loader->peekCartridgeContext());
 	}
+
+	if (auto loader = m_cpu.lock()) {
+		cpuDebugUI.updateUI(*loader);
+	}*/
 }

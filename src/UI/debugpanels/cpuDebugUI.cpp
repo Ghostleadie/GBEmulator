@@ -7,7 +7,7 @@
 #include "imgui.h"
 #include "../../components/cpu/cpu.h"
 
-void cpuDebugUI::updateUI(const cpu& cpu)
+void cpuDebugUI::updateUI(cpu& cpu)
 {
 	ImGui::Begin("CPU Debug");
 	ImGui::Text("PC: %04X", cpu.getPC());
@@ -17,11 +17,19 @@ void cpuDebugUI::updateUI(const cpu& cpu)
 	// Stepping toggle
 	static bool steppingEnabled = false;
 	ImGui::Checkbox("Enable Stepping", &steppingEnabled);
-	//cpu.ste
+
+	if (cpu.getSteppingMode() != steppingEnabled) {
+		cpu.setSteppingMode(steppingEnabled);
+	}
+
 	// Step button
 	ImGui::BeginDisabled(!steppingEnabled);
 	if (ImGui::Button("Step to Next Instruction")) {
-		// You need to implement this: e.g., cpu.stepInstruction();
+		if (cpu.getStepComplete() == true)
+		{
+			cpu.setStepComplete(false);
+		}
 	}
 	ImGui::EndDisabled();
+	ImGui::End();
 }

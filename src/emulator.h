@@ -30,7 +30,7 @@ enum emulatorStates
 class emulator
 {
 public:
-	emulator() : m_menu(std::make_unique<mainMenu>()), m_debugUI(std::make_unique<debugUI>()) {};
+	emulator() = default;
 	~emulator() = default;
 	void initalizeEmulator();
 	void runEmulator();

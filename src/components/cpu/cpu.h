@@ -146,7 +146,11 @@ public:
 	uint8_t getCurrentOpcode() const { return currentOpcode; }
 	opcode getCurrentOpcodeData() const;
 
-	void setSetpingMode(const bool value) { steppingMode = value; }
+	void setSteppingMode(const bool value) { steppingMode = value; }
+	bool getSteppingMode() const { return steppingMode; }
+
+	void setStepComplete(const bool value) { stepComplete = value; }
+	bool getStepComplete() const { return stepComplete; }
 
 private:
 	std::shared_ptr<bus> m_bus;

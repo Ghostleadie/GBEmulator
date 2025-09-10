@@ -10,7 +10,7 @@ class cpu;
 
 class cpuDebugUI {
 public:
-	void updateUI(const cpu& cpu);
+	void updateUI(cpu& cpu);
 };
 
 
