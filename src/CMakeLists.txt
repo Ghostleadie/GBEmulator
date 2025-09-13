@@ -28,8 +28,6 @@ add_executable(GameBoyEmulator main.cpp
         Components/timer.h
         Components/joypad.cpp
         Components/joypad.h
-        Components/apu.cpp
-        Components/apu.h
         Components/cpu/opcodes.cpp
         Components/cpu/opcodes.h
         Components/cpu/opcodes.h
