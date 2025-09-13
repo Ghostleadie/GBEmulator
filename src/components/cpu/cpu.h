@@ -93,7 +93,7 @@ public:
 
 	void fetchData();
 
-	void execute(opcode opcode);
+	//void execute(opcode opcode);
 
 	//void onInstructionExecuted(const std::string& instruction);
 
@@ -113,13 +113,21 @@ public:
 
 	void setCarryFlag(uint8_t c) const;
 
+	bool isZeroFlagSet() const;
+
+	bool isSubtractFlagSet() const;
+
+	bool isHalfCarryFlagSet() const;
+
+	bool isCarryFlagSet() const;
+
 	void setHalfCarryFlag(uint8_t h) const;
 
 	void isFlagSet();
 
 	//getter and setters
 
-	uint8_t getIERegister();
+	uint8_t getIERegister() const;
 
 	void setIERegister(uint8_t value);
 
@@ -152,10 +160,17 @@ public:
 	void setStepComplete(const bool value) { stepComplete = value; }
 	bool getStepComplete() const { return stepComplete; }
 
+	void setHalted(const bool value) { halted = value; }
+	bool getHalted() const { return halted; }
+
+	void setIMEScheduled(const bool value) { imeScheduled = value; }
+	bool getIMEScheduled() const { return imeScheduled; }
+
 private:
 	std::shared_ptr<bus> m_bus;
 	bool steppingMode = false;
 	bool stepComplete = false;
+	bool halted = false;
 	registers registers = {};
 	uint8_t currentOpcode = 0;
 	opcode currentOpcodeData;
@@ -164,6 +179,7 @@ private:
 	bool destinationIsMemory;
 	bool masterInterruptEnable;
 	uint8_t interruptEnableRegister;
+	bool imeScheduled;
 
 public:
 

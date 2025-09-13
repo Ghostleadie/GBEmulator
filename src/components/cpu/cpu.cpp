@@ -37,7 +37,7 @@ void cpu::fetchData()
 		{
 			//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 			uint16_t lowValue = m_bus->read(registers.pc);
-			//emulator::cycles(1);
+			emulator::cycles(1);
 
 			uint16_t highValue = m_bus->read(registers.pc + 1);
 			emulator::cycles(1);
@@ -74,7 +74,7 @@ void cpu::fetchData()
 		case AM_R_D8:
 		{
 			fetchedData = m_bus->read(registers.pc);
-			//emulator::cycles(1);
+			emulator::cycles(1);
 			registers.pc++;
 			break;
 		}
@@ -241,18 +241,6 @@ void cpu::fetchData()
 	}
 }
 
-void cpu::execute(opcode opcode)
-{
-	LOG_INFO("Executing opcode: {:02X} Program Counter: {:04X}", currentOpcode, registers.pc);
-	if (opcode.name == "0xCB")
-	{
-		//execute CB opcodes
-	}
-	else
-	{
-		//execute normal opcodes
-	}
-}
 
 uint16_t cpu::readRegister(const registryType reg) const
 {
@@ -285,10 +273,8 @@ uint16_t cpu::readRegister(const registryType reg) const
 			return registers.hl;
 		case RT_PC:
 			return registers.pc;
-			break;
 		case RT_SP:
 			return registers.sp;
-			break;
 		default:
 			return 0;
 	}
@@ -303,7 +289,15 @@ void cpu::emulateCycle()
 		{
 			fetchOpcode();
 			fetchData();
-			execute(currentOpcodeData);
+			if (currentOpcodeData.execute != nullptr)
+			{
+				LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, registers.pc);
+				currentOpcodeData.execute(*this);
+			}
+			else
+			{
+				LOG_ERROR("Unimplemented {}: {:02X} at PC: {:04X}", currentOpcodeData.name, currentOpcode, registers.pc - 1);
+			}
 			stepComplete = true;
 		}
 	}
@@ -313,12 +307,12 @@ void cpu::emulateCycle()
 		fetchData();
 		if (currentOpcodeData.execute != nullptr)
 		{
-			LOG_INFO("Executing opcode: {:02X} Program Counter: {:04X}", currentOpcode, registers.pc);
+			LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, registers.pc);
 			currentOpcodeData.execute(*this);
 		}
 		else
 		{
-			LOG_ERROR("Unimplemented opcode: {:02X} at PC: {:04X}", currentOpcode, registers.pc - 1);
+			LOG_ERROR("Unimplemented {}: {:02X} at PC: {:04X}", currentOpcodeData.name, currentOpcode, registers.pc - 1);
 		}
 		//execute(currentOpcodeData);
 	}
@@ -381,7 +375,7 @@ void cpu::writeRegister(const registryType reg, const uint16_t& value)
 	}
 }
 
-uint8_t cpu::getIERegister()
+uint8_t cpu::getIERegister() const
 {
 	return interruptEnableRegister;
 }
@@ -430,7 +424,7 @@ void cpu::setFlags(const uint8_t z, const uint8_t n, const uint8_t h, const uint
 
 void cpu::setZeroFlag(const uint8_t z) const
 {
-		if (z != -1)
+		if (z != 0xFF)
 		{
 			utility::setBitTo(registers.f, 7, z);
 		}
@@ -442,7 +436,7 @@ void cpu::setZeroFlag(const uint8_t z) const
 
 void cpu::setSubtractFlag(const uint8_t n) const
 {
-		if (n != -1)
+		if (n != 0xFF)
 		{
 			utility::setBitTo(registers.f, 6, n);
 		}
@@ -454,7 +448,7 @@ void cpu::setSubtractFlag(const uint8_t n) const
 
 void cpu::setHalfCarryFlag(const uint8_t h) const
 {
-		if (h != -1)
+		if (h != 0xFF)
 		{
 			utility::setBitTo(registers.f, 5, h);
 		}
@@ -466,7 +460,7 @@ void cpu::setHalfCarryFlag(const uint8_t h) const
 
 void cpu::setCarryFlag(const uint8_t c) const
 {
-		if (c != -1)
+		if (c != 0xFF)
 		{
 			utility::setBitTo(registers.f, 4, c);
 		}
@@ -476,6 +470,22 @@ void cpu::setCarryFlag(const uint8_t c) const
 		}
 }
 
-void cpu::isFlagSet()
-{
+// Returns true if the Zero flag is set
+bool cpu::isZeroFlagSet() const {
+	return utility::checkBit(registers.f, 7);
+}
+
+// Returns true if the Subtract flag is set
+bool cpu::isSubtractFlagSet() const {
+	return utility::checkBit(registers.f, 6);
+}
+
+// Returns true if the Half Carry flag is set
+bool cpu::isHalfCarryFlagSet() const {
+	return utility::checkBit(registers.f, 5);
+}
+
+// Returns true if the Carry flag is set
+bool cpu::isCarryFlagSet() const {
+	return utility::checkBit(registers.f, 4);
 }
