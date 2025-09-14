@@ -17,7 +17,6 @@ class joypad;
 class bus;
 class cartridgeLoader;
 class cpu;
-class apu;
 
 enum emulatorStates
 {
@@ -38,7 +37,6 @@ public:
 	const std::shared_ptr<cpu>& getCPU() const { return m_cpu; }
 	const std::shared_ptr<cartridgeLoader>& getCartridge() const { return m_cartridge; }
 	const std::shared_ptr<bus>& getBus() const { return m_bus; }
-	const std::shared_ptr<apu>& getAPU() const { return m_apu; }
 	const std::shared_ptr<joypad>& getJoypad() const { return m_joypad; }
 	const std::shared_ptr<ppu>& getPPU() const { return m_ppu; }
 	const std::shared_ptr<timer>& getTimer() const { return m_timer;}
@@ -55,7 +53,6 @@ private:
 	std::shared_ptr<cpu> m_cpu;
 	std::shared_ptr<cartridgeLoader> m_cartridge;
 	std::shared_ptr<bus> m_bus;
-	std::shared_ptr<apu> m_apu;
 	std::shared_ptr<joypad> m_joypad;
 	std::shared_ptr<ppu> m_ppu;
 	std::shared_ptr<timer> m_timer;

@@ -4,7 +4,6 @@
 
 #include "emulator.h"
 
-#include "components/apu.h"
 #include "components/bus.h"
 #include "components/cartridgeLoader.h"
 #include "components/joypad.h"
@@ -21,12 +20,11 @@ void emulator::initalizeEmulator()
     m_cpu = std::make_shared<cpu>(m_bus);
 
     m_cartridge = std::make_shared<cartridgeLoader>();
-	m_apu = std::make_shared<apu>();
 	m_joypad = std::make_shared<joypad>();
 	m_ppu = std::make_shared<ppu>();
 	m_timer = std::make_shared<timer>();
 
-	m_bus->connectComponents(m_cartridge, m_apu, m_joypad, m_ppu, m_timer);
+	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer);
 
 	m_debugUI = std::make_unique<debugUI>(m_cartridge,m_cpu);
 	m_menu = std::make_unique<mainMenu>();
@@ -66,6 +64,10 @@ void emulator::runEmulator()
 			SDL_Delay(10);
 			break;
 		}
+		default:
+		{
+			break;
+		}
 	}
 
 	ticks++;
@@ -74,14 +76,13 @@ void emulator::runEmulator()
 	{
 		m_debugUI->UpdateUIPanels();
 	}
-	//m_cartridge->loadCartridge(filepath);
 }
 
 void emulator::cycles(const uint64_t cycles)
 {
 	for (int i=0; i<cycles; i++) {
 		for (int n=0; n<4; n++) {
-			emulator::ticks++;
+			ticks++;
 			//m_timer->tick();
 			//m_ppu->tick();
 		}
