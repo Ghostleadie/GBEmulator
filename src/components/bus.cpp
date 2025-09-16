@@ -5,13 +5,15 @@
 #include "bus.h"
 #include "../Utility/utility.h"
 #include "cartridgeLoader.h"
+#include "cpu/cpu.h"
 
-void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer)
+void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer, const std::shared_ptr<cpu>& cpu)
 {
 	m_cartridge = loader;
 	m_joypad = joypad;
 	m_ppu = ppu;
 	m_timer = timer;
+	m_cpu = cpu;
 }
 
 void bus::notify(const std::string& event, std::shared_ptr<memoryComponent> sender)
@@ -71,7 +73,7 @@ uint8_t bus::read(uint16_t address)
 	{
 		LOG_INFO("Bus Read from Interrupt enable register: {:04X}", address);
 		//CPU Interrupt enable register
-		//m_cpu->getIERegister();
+		return m_cpu.lock()->getIERegister();
 	}
 	else
 	{
@@ -85,14 +87,14 @@ uint8_t bus::read(uint16_t address)
 		}
 		else
 		{
-			LOG_ERROR("invalid memory read");
+			LOG_ERROR("invalid memory read: {}", address);
 			return 0;
 		}
 	}
 	return 0;
 }
 
-void bus::write(uint16_t address, uint8_t value)
+void bus::write(uint16_t address, const uint8_t value)
 {
 	if (address < 0x8000)
 	{
@@ -141,7 +143,7 @@ void bus::write(uint16_t address, uint8_t value)
 	else if (address < 0xFFFF)
 	{
 		//CPU Interrupt enable register
-		//m_cpu->setIERegister(value);
+		m_cpu.lock()->setIERegister(value);
 	}
 	else
 	{
@@ -157,7 +159,7 @@ void bus::write(uint16_t address, uint8_t value)
 		}
 		else
 		{
-			LOG_ERROR("invalid memory read");
+			LOG_ERROR("invalid memory write: {}", address);
 			return;
 		}
 	}

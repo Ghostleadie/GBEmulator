@@ -24,7 +24,7 @@ void emulator::initalizeEmulator()
 	m_ppu = std::make_shared<ppu>();
 	m_timer = std::make_shared<timer>();
 
-	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer);
+	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer, m_cpu);
 
 	m_debugUI = std::make_unique<debugUI>(m_cartridge,m_cpu);
 	m_menu = std::make_unique<mainMenu>();
