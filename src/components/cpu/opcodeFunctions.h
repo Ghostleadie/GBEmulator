@@ -5,8 +5,8 @@
 #ifndef GAMEBOYEMULATOR_OPCODEFUNCTIONS_H
 #define GAMEBOYEMULATOR_OPCODEFUNCTIONS_H
 #include <memory>
+#include "opcodes.h"
 
-#include "../../emulator.h"
 
 class cpu;
 
@@ -75,9 +75,14 @@ public:
     void execute(cpu& m_cpu) override;
 };
 
-class DecCommand : public OpcodeCommand {
+class Dec8BitCommand : public OpcodeCommand {
 public:
     void execute(cpu& m_cpu) override;
+};
+
+class Dec16BitCommand : public OpcodeCommand {
+public:
+	void execute(cpu& m_cpu) override;
 };
 
 class DiCommand : public OpcodeCommand {
@@ -95,9 +100,14 @@ public:
     void execute(cpu& m_cpu) override;
 };
 
-class IncCommand : public OpcodeCommand {
+class Inc8BitCommand : public OpcodeCommand {
 public:
     void execute(cpu& m_cpu) override;
+};
+
+class Inc16BitCommand : public OpcodeCommand {
+public:
+	void execute(cpu& m_cpu) override;
 };
 
 class JpCommand : public OpcodeCommand {
@@ -153,6 +163,10 @@ public:
     void execute(cpu& m_cpu) override;
 };
 
+class PopSpecialCommand : public OpcodeCommand {
+public:
+	void execute(cpu& m_cpu) override;
+};
 
 class PushCommand : public OpcodeCommand {
 public:
@@ -234,7 +248,7 @@ public:
 // Command Factory that integrates with existing opcodeFactory
 class OpcodeCommandFactory {
 public:
-	static std::unique_ptr<OpcodeCommand> createCommand(uint8_t opcode);
+	static std::unique_ptr<OpcodeCommand> createCommand(const opcode& opcode);
 };
 
 

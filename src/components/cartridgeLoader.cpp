@@ -48,6 +48,7 @@ bool cartridgeLoader::loadCartridge(const std::string cartridgePath)
 
 uint8_t cartridgeLoader::read(uint16_t address)
 {
+	LOG_INFO("Reading from cartridge at address: 0x{:04X}", address);
 	return ctx.romData[address];
 }
 

@@ -8,7 +8,6 @@
 #include <memory>
 #include <functional>
 #include <unordered_map>
-#include "opcodeFunctions.h"
 
 class cpu;
 
@@ -117,6 +116,13 @@ enum conditionType
 	CT_C
 };
 
+struct extendedCBOpcode
+{
+	std::string name;
+	opcodeType type;
+	registryType reg;
+};
+
 struct opcode
 {
 	//meta data
@@ -137,8 +143,11 @@ struct opcode
 };
 
 extern const std::unordered_map<uint8_t, opcode> opcodeTable;
+extern const std::unordered_map<uint8_t, extendedCBOpcode> cbOpcodeTable;
 void initializeOpcodeExecution();
 opcode getOpcode(uint8_t opcode_value);
+
+extendedCBOpcode getCBOpcode(uint8_t opcode_value);
 
 
 #endif //GAMEBOYEMULATOR_OPCODES_H

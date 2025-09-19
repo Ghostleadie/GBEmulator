@@ -7,7 +7,6 @@
 #include "debugpanels/cartridgeDebugUI.h"
 #include "debugpanels/cpuDebugUI.h"
 
-
 class timer;
 class ppu;
 class joypad;
@@ -21,7 +20,7 @@ class debugUI
 {
 public:
 	debugUI() = default;
-	debugUI(const std::shared_ptr<cartridgeLoader>& cartridge_loader, const std::shared_ptr<cpu>& cpu) : m_cpu(cpu), m_Loader(cartridge_loader) {};
+	debugUI(const std::shared_ptr<cartridgeLoader>& cartridge_loader, const std::shared_ptr<cpu>& cpu) : m_cpu(cpu), m_Loader(cartridge_loader){};
 	~debugUI() = default;
 	void UpdateUIPanels();
 
@@ -35,6 +34,7 @@ private:
 	std::weak_ptr<timer> m_timer;
 	cartridgeDebugUI cartridgeDebugUI;
 	cpuDebugUI cpuDebugUI;
+
 };
 
 

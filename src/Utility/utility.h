@@ -33,9 +33,13 @@ namespace utility {
 	};
 
 	// Sets or clears the bit at position 'bit' in 'value' based on 'bit_on'.
-	inline uint8_t setBitTo(const uint8_t value, const uint8_t bit, bool bit_on)
+	inline void setBitTo(uint8_t& value, const uint8_t& bit, bool bit_on)
 	{
-		return bit_on ? utility::setBit(value, bit) : utility::clearBit(value, bit);
+		if (bit_on) {
+			value |= (1 << bit);
+		} else {
+			value &= ~(1 << bit);
+		}
 	};
 
 	// Returns true if the bit at position 'bit' in 'value' is set.

@@ -17,11 +17,11 @@ struct registers
 		{
 			struct
 			{
-				unsigned char f;
-				unsigned char a;
+				uint8_t f;
+				uint8_t a;
 			};
 
-			unsigned short af;
+			uint16_t af;
 		};
 	};
 
@@ -31,11 +31,11 @@ struct registers
 		{
 			struct
 			{
-				unsigned char c;
-				unsigned char b;
+				uint8_t c;
+				uint8_t b;
 			};
 
-			unsigned short bc;
+			uint16_t bc;
 		};
 	};
 
@@ -45,11 +45,11 @@ struct registers
 		{
 			struct
 			{
-				unsigned char e;
-				unsigned char d;
+				uint8_t e;
+				uint8_t d;
 			};
 
-			unsigned short de;
+			uint16_t de;
 		};
 	};
 
@@ -59,16 +59,16 @@ struct registers
 		{
 			struct
 			{
-				unsigned char l;
-				unsigned char h;
+				uint8_t l;
+				uint8_t h;
 			};
 
-			unsigned short hl;
+			uint16_t hl;
 		};
 	};
 
-	unsigned short sp;
-	unsigned short pc;
+	uint16_t sp;
+	uint16_t pc;
 };
 
 struct flags
@@ -79,10 +79,19 @@ struct flags
 	bool carry;
 };
 
+enum interruptTypes
+{
+	INT_VBLANK = 1,
+	INT_LCD_STAT = 2,
+	INT_TIMER = 4,
+	INT_SERIAL = 8,
+	INT_JOYPAD = 16
+};
+
 class cpu
 {
 public:
-	cpu(std::shared_ptr<bus> bus)
+	cpu(const std::shared_ptr<bus>& bus)
 		: m_bus(bus) {};
 
 	void init();
@@ -93,25 +102,32 @@ public:
 
 	void fetchData();
 
-	//void execute(opcode opcode);
-
-	//void onInstructionExecuted(const std::string& instruction);
-
-	static uint16_t reverse(const uint16_t number) { return ((number & 0xFF00) >> 8) | ((number & 0x00FF) << 8); }
-
+	// register functions
 	uint16_t readRegister(registryType reg) const;
 
 	void writeRegister(registryType reg, const uint16_t& value);
 
-	bool checkConditionFlags() const;
+	// interrupt functions
 
-	void setFlags(uint8_t z, uint8_t n, uint8_t h, uint8_t c) const;
+	void handleInterrupts();
 
-	void setZeroFlag(uint8_t z) const;
+	void handleInterrupt(uint16_t address);
 
-	void setSubtractFlag(uint8_t n) const;
+	bool interruptCheck(uint16_t address, interruptTypes type);
 
-	void setCarryFlag(uint8_t c) const;
+
+	// flag functions
+	bool checkConditionFlags();
+
+	void setFlags(uint8_t z, uint8_t n, uint8_t h, uint8_t c);
+
+	void setZeroFlag(uint8_t z);
+
+	void setSubtractFlag(uint8_t n);
+
+	void setHalfCarryFlag(uint8_t h);
+
+	void setCarryFlag(uint8_t c);
 
 	bool isZeroFlagSet() const;
 
@@ -121,26 +137,31 @@ public:
 
 	bool isCarryFlagSet() const;
 
-	void setHalfCarryFlag(uint8_t h) const;
 
-	void isFlagSet();
 
-	//getter and setters
+	// stack functions
+	void pushStack(const uint8_t value);
+	uint8_t popStack();
+
+	void pushStack16(const uint16_t value);
+	uint16_t popStack16();
+
+	//getter and setters functions
 
 	uint8_t getIERegister() const;
 
 	void setIERegister(uint8_t value);
 
-	inline uint16_t getFetchedData() const { return fetchedData; }
+	uint16_t getFetchedData() const { return fetchedData; }
 	inline void setFetchedData(const uint16_t value) { fetchedData = value; };
 
-	inline bool getMasterInterruptEnable() const { return masterInterruptEnable; }
-	inline void setMasterInterruptEnable(const bool value) { masterInterruptEnable = value; }
+	bool getMasterInterruptEnabled() const { return masterInterruptEnabled; }
+	inline void setMasterInterruptEnabled(const bool value) { masterInterruptEnabled = value; }
 
-	inline bool getDestinationIsMemory() const { return destinationIsMemory; }
+	bool getDestinationIsMemory() const { return destinationIsMemory; }
 	inline void setDestinationIsMemory(const bool value) { destinationIsMemory = value; }
 
-	inline uint16_t getMemoryDestination() const { return memoryDestination; }
+	uint16_t getMemoryDestination() const { return memoryDestination; }
 	inline void setMemoryDestination(const uint16_t value) { memoryDestination = value; }
 
 	std::weak_ptr<bus> getBus() const { return m_bus; }
@@ -163,11 +184,17 @@ public:
 	void setHalted(const bool value) { halted = value; }
 	bool getHalted() const { return halted; }
 
-	void setIMEScheduled(const bool value) { imeScheduled = value; }
-	bool getIMEScheduled() const { return imeScheduled; }
+	void setEnablingIME(const bool value) { enablingIME = value; }
+	bool getEnablingIME() const { return enablingIME; }
 
+	void setInterruptFlags(const uint8_t value) { interruptFlags = value; }
+	uint8_t getInterruptFlags() const { return interruptFlags; }
+
+	// utility functions
+	static uint16_t reverse(const uint16_t number) { return ((number & 0xFF00) >> 8) | ((number & 0x00FF) << 8); }
 private:
 	std::shared_ptr<bus> m_bus;
+	std::vector<opcode> opcodesHistory;
 	bool steppingMode = false;
 	bool stepComplete = false;
 	bool halted = false;
@@ -177,9 +204,10 @@ private:
 	uint16_t fetchedData;
 	uint16_t memoryDestination;
 	bool destinationIsMemory;
-	bool masterInterruptEnable;
+	bool masterInterruptEnabled;
 	uint8_t interruptEnableRegister;
-	bool imeScheduled;
+	bool enablingIME;
+	uint8_t interruptFlags;
 
 public:
 

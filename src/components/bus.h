@@ -29,6 +29,9 @@ public:
 	uint8_t readHRam(uint16_t address);
 	void writeHRam(uint16_t address, uint8_t value);
 
+	uint8_t readIO(uint16_t address);
+	void writeIO(uint16_t address, uint8_t value);
+
 private:
 	std::shared_ptr<cartridgeLoader> m_cartridge;
 	std::shared_ptr<joypad> m_joypad;
@@ -38,6 +41,8 @@ private:
 
 	std::array<uint8_t, 0x2000> wRam{};
 	std::array<uint8_t, 0x80> hRam{};
+
+	char serialData[2];
 };
 
 

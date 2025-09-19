@@ -23,6 +23,15 @@ void bus::notify(const std::string& event, std::shared_ptr<memoryComponent> send
 
 uint8_t bus::read(uint16_t address)
 {
+	if (address == 0xFF01) return 0x00;  // Serial data
+	if (address == 0xFF02) return 0x7E;  // Serial control
+
+	if (address <= 0x00FF) {
+		if (m_cartridge) {
+			return m_cartridge->read(address);
+		}
+		return 0xFF;
+	}
 	if (address < 0x8000)
 	{
 		//ROM Data
@@ -66,8 +75,8 @@ uint8_t bus::read(uint16_t address)
 	else if (address < 0xFF80)
 	{
 		//IO
-		LOG_INFO("Bus Read from I/o: {:04X}", address);
-		return 0;
+		//LOG_INFO("Bus Read from I/o: {:04X}", address);
+		return readIO(address);
 	}
 	else if (address < 0xFFFF)
 	{
@@ -96,6 +105,35 @@ uint8_t bus::read(uint16_t address)
 
 void bus::write(uint16_t address, const uint8_t value)
 {
+	if (address < 0xFF00 && address > 0xFFFF)
+	{
+		LOG_WARN("serial register write attempted");
+	}
+
+	// In your bus::write() method, add this before the actual write:
+	if (address == 0xFF01) {
+		LOG_INFO("SERIAL DATA WRITE: address=0xFF01, value=0x{:02X} ('{}')",
+				 value, (value >= 32 && value <= 126) ? static_cast<char>(value) : '?');
+	}
+	if (address == 0xFF02) {
+		LOG_INFO("SERIAL CONTROL WRITE: address=0xFF02, value=0x{:02X}, transfer_start={}",
+				 value, (value & 0x80) ? "YES" : "NO");
+
+		// If bit 7 is set, output the character from 0xFF01
+		if (value & 0x80) {
+			uint8_t serialData = read(0xFF01);
+			LOG_INFO("SERIAL OUTPUT: '{}'",
+					 (serialData >= 32 && serialData <= 126) ? static_cast<char>(serialData) : '?');
+
+			// Clear bit 7 after transfer (hardware behavior)
+			write(0xFF02, value & 0x7F);
+
+			// Set serial interrupt flag if enabled
+			m_cpu.lock()->setInterruptFlags(INT_SERIAL);
+		}
+	}
+
+	LOG_INFO("Bus Write: 0x{:02X} to address 0x{:04X}", value, address);
 	if (address < 0x8000)
 	{
 		//ROM Data
@@ -138,7 +176,7 @@ void bus::write(uint16_t address, const uint8_t value)
 	else if (address < 0xFF80)
 	{
 		//IO
-		//m_io->write(m_cpu, address, value);
+		writeIO(address, value);
 	}
 	else if (address < 0xFFFF)
 	{
@@ -147,21 +185,7 @@ void bus::write(uint16_t address, const uint8_t value)
 	}
 	else
 	{
-		if (utility::inRange(address, 0xC000, 0xCFFF))
-		{
-			writeWRam(address,value);
-			return;
-		}
-		else if (utility::inRange(address, 0xFF80, 0xFFFE))
-		{
-			writeHRam(address,value);
-			return;
-		}
-		else
-		{
-			LOG_ERROR("invalid memory write: {}", address);
-			return;
-		}
+		writeHRam(address,value);
 	}
 }
 
@@ -202,4 +226,51 @@ void bus::writeHRam(uint16_t address, const uint8_t value)
 	address -= 0xFF80;
 
 	hRam[address] = value;
+}
+
+uint8_t bus::readIO(uint16_t address)
+{
+	if (address == 0xFF01)
+	{
+		return serialData[0];
+	}
+	if (address == 0xFF02)
+	{
+		return serialData[1];
+	}
+	LOG_WARN("Trying to read from IO address other than 0xFF01 & 0xFF02: {}", address);
+}
+
+void bus::writeIO(uint16_t address, uint8_t value)
+{
+	if (address == 0xFF01)
+	{
+		serialData[0] = value;
+
+		// Enhanced serial logging
+		char ch = (value >= 32 && value <= 126) ? (char)value : '?';
+		LOG_WARN("=== SERIAL DATA: 0x{:02X} ('{}') ===", value, ch);
+
+		static std::string serialBuffer;
+		serialBuffer += ch;
+		LOG_WARN("Serial buffer: '{}'", serialBuffer);
+
+		// Check for Blargg test completion
+		if (serialBuffer.find("Passed") != std::string::npos ||
+			serialBuffer.find("Failed") != std::string::npos ||
+			serialBuffer.find("01-special") != std::string::npos) {
+			LOG_WARN("=== BLARGG TEST RESULT: {} ===", serialBuffer);
+			}
+		return;
+	}
+
+	if (address == 0xFF02)
+	{
+		serialData[1] = value;
+		LOG_WARN("=== SERIAL CONTROL: 0x{:02X} ===", value);
+		if (value == 0x81) {
+			LOG_WARN("Serial transfer initiated!");
+		}
+		return;
+	}
 }

@@ -55,8 +55,10 @@ void emulator::runEmulator()
 			{
 				romLoaded = m_cartridge->loadCartridge(filepath);
 			}
-
-			m_cpu->emulateCycle();
+			for (int i = 0; i < 10000; i++)
+			{
+				m_cpu->emulateCycle();
+			}
 			break;
 		}
 		case EMU_STATE_PAUSED:

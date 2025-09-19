@@ -287,6 +287,300 @@
 	};
 
 
+const std::unordered_map<uint8_t, extendedCBOpcode> cbOpcodeTable =
+{
+    // 0x0X - RLC r
+    {0x00, {"RLC", OP_RLC, RT_B}},
+    {0x01, {"RLC", OP_RLC, RT_C}},
+    {0x02, {"RLC", OP_RLC, RT_D}},
+    {0x03, {"RLC", OP_RLC, RT_E}},
+    {0x04, {"RLC", OP_RLC, RT_H}},
+    {0x05, {"RLC", OP_RLC, RT_L}},
+    {0x06, {"RLC", OP_RLC, RT_HL}},
+    {0x07, {"RLC", OP_RLC, RT_A}},
+    {0x08, {"RRC", OP_RRC, RT_B}},
+    {0x09, {"RRC", OP_RRC, RT_C}},
+    {0x0A, {"RRC", OP_RRC, RT_D}},
+    {0x0B, {"RRC", OP_RRC, RT_E}},
+    {0x0C, {"RRC", OP_RRC, RT_H}},
+    {0x0D, {"RRC", OP_RRC, RT_L}},
+    {0x0E, {"RRC", OP_RRC, RT_HL}},
+    {0x0F, {"RRC", OP_RRC, RT_A}},
+
+    // 0x1X - RL r and RR r
+    {0x10, {"RL", OP_RL, RT_B}},
+    {0x11, {"RL", OP_RL, RT_C}},
+    {0x12, {"RL", OP_RL, RT_D}},
+    {0x13, {"RL", OP_RL, RT_E}},
+    {0x14, {"RL", OP_RL, RT_H}},
+    {0x15, {"RL", OP_RL, RT_L}},
+    {0x16, {"RL", OP_RL, RT_HL}},
+    {0x17, {"RL", OP_RL, RT_A}},
+    {0x18, {"RR", OP_RR, RT_B}},
+    {0x19, {"RR", OP_RR, RT_C}},
+    {0x1A, {"RR", OP_RR, RT_D}},
+    {0x1B, {"RR", OP_RR, RT_E}},
+    {0x1C, {"RR", OP_RR, RT_H}},
+    {0x1D, {"RR", OP_RR, RT_L}},
+    {0x1E, {"RR", OP_RR, RT_HL}},
+    {0x1F, {"RR", OP_RR, RT_A}},
+
+    // 0x2X - SLA r and SRA r
+    {0x20, {"SLA", OP_SLA, RT_B}},
+    {0x21, {"SLA", OP_SLA, RT_C}},
+    {0x22, {"SLA", OP_SLA, RT_D}},
+    {0x23, {"SLA", OP_SLA, RT_E}},
+    {0x24, {"SLA", OP_SLA, RT_H}},
+    {0x25, {"SLA", OP_SLA, RT_L}},
+    {0x26, {"SLA", OP_SLA, RT_HL}},
+    {0x27, {"SLA", OP_SLA, RT_A}},
+    {0x28, {"SRA", OP_SRA, RT_B}},
+    {0x29, {"SRA", OP_SRA, RT_C}},
+    {0x2A, {"SRA", OP_SRA, RT_D}},
+    {0x2B, {"SRA", OP_SRA, RT_E}},
+    {0x2C, {"SRA", OP_SRA, RT_H}},
+    {0x2D, {"SRA", OP_SRA, RT_L}},
+    {0x2E, {"SRA", OP_SRA, RT_HL}},
+    {0x2F, {"SRA", OP_SRA, RT_A}},
+
+    // 0x3X - SWAP r and SRL r
+    {0x30, {"SWAP", OP_SWAP, RT_B}},
+    {0x31, {"SWAP", OP_SWAP, RT_C}},
+    {0x32, {"SWAP", OP_SWAP, RT_D}},
+    {0x33, {"SWAP", OP_SWAP, RT_E}},
+    {0x34, {"SWAP", OP_SWAP, RT_H}},
+    {0x35, {"SWAP", OP_SWAP, RT_L}},
+    {0x36, {"SWAP", OP_SWAP, RT_HL}},
+    {0x37, {"SWAP", OP_SWAP, RT_A}},
+    {0x38, {"SRL", OP_SRL, RT_B}},
+    {0x39, {"SRL", OP_SRL, RT_C}},
+    {0x3A, {"SRL", OP_SRL, RT_D}},
+    {0x3B, {"SRL", OP_SRL, RT_E}},
+    {0x3C, {"SRL", OP_SRL, RT_H}},
+    {0x3D, {"SRL", OP_SRL, RT_L}},
+    {0x3E, {"SRL", OP_SRL, RT_HL}},
+    {0x3F, {"SRL", OP_SRL, RT_A}},
+
+    // 0x4X - BIT 0,r
+    {0x40, {"BIT", OP_BIT, RT_B}},
+    {0x41, {"BIT", OP_BIT, RT_C}},
+    {0x42, {"BIT", OP_BIT, RT_D}},
+    {0x43, {"BIT", OP_BIT, RT_E}},
+    {0x44, {"BIT", OP_BIT, RT_H}},
+    {0x45, {"BIT", OP_BIT, RT_L}},
+    {0x46, {"BIT", OP_BIT, RT_HL}},
+    {0x47, {"BIT", OP_BIT, RT_A}},
+    {0x48, {"BIT", OP_BIT, RT_B}},
+    {0x49, {"BIT", OP_BIT, RT_C}},
+    {0x4A, {"BIT", OP_BIT, RT_D}},
+    {0x4B, {"BIT", OP_BIT, RT_E}},
+    {0x4C, {"BIT", OP_BIT, RT_H}},
+    {0x4D, {"BIT", OP_BIT, RT_L}},
+    {0x4E, {"BIT", OP_BIT, RT_HL}},
+    {0x4F, {"BIT", OP_BIT, RT_A}},
+
+    // 0x5X - BIT 2,r and BIT 3,r
+    {0x50, {"BIT", OP_BIT, RT_B}},
+    {0x51, {"BIT", OP_BIT, RT_C}},
+    {0x52, {"BIT", OP_BIT, RT_D}},
+    {0x53, {"BIT", OP_BIT, RT_E}},
+    {0x54, {"BIT", OP_BIT, RT_H}},
+    {0x55, {"BIT", OP_BIT, RT_L}},
+    {0x56, {"BIT", OP_BIT, RT_HL}},
+    {0x57, {"BIT", OP_BIT, RT_A}},
+    {0x58, {"BIT", OP_BIT, RT_B}},
+    {0x59, {"BIT", OP_BIT, RT_C}},
+    {0x5A, {"BIT", OP_BIT, RT_D}},
+    {0x5B, {"BIT", OP_BIT, RT_E}},
+    {0x5C, {"BIT", OP_BIT, RT_H}},
+    {0x5D, {"BIT", OP_BIT, RT_L}},
+    {0x5E, {"BIT", OP_BIT, RT_HL}},
+    {0x5F, {"BIT", OP_BIT, RT_A}},
+
+    // 0x6X - BIT 4,r and BIT 5,r
+    {0x60, {"BIT", OP_BIT, RT_B}},
+    {0x61, {"BIT", OP_BIT, RT_C}},
+    {0x62, {"BIT", OP_BIT, RT_D}},
+    {0x63, {"BIT", OP_BIT, RT_E}},
+    {0x64, {"BIT", OP_BIT, RT_H}},
+    {0x65, {"BIT", OP_BIT, RT_L}},
+    {0x66, {"BIT", OP_BIT, RT_HL}},
+    {0x67, {"BIT", OP_BIT, RT_A}},
+    {0x68, {"BIT", OP_BIT, RT_B}},
+    {0x69, {"BIT", OP_BIT, RT_C}},
+    {0x6A, {"BIT", OP_BIT, RT_D}},
+    {0x6B, {"BIT", OP_BIT, RT_E}},
+    {0x6C, {"BIT", OP_BIT, RT_H}},
+    {0x6D, {"BIT", OP_BIT, RT_L}},
+    {0x6E, {"BIT", OP_BIT, RT_HL}},
+    {0x6F, {"BIT", OP_BIT, RT_A}},
+
+    // 0x7X - BIT 6,r and BIT 7,r
+    {0x70, {"BIT", OP_BIT, RT_B}},
+    {0x71, {"BIT", OP_BIT, RT_C}},
+    {0x72, {"BIT", OP_BIT, RT_D}},
+    {0x73, {"BIT", OP_BIT, RT_E}},
+    {0x74, {"BIT", OP_BIT, RT_H}},
+    {0x75, {"BIT", OP_BIT, RT_L}},
+    {0x76, {"BIT", OP_BIT, RT_HL}},
+    {0x77, {"BIT", OP_BIT, RT_A}},
+    {0x78, {"BIT", OP_BIT, RT_B}},
+    {0x79, {"BIT", OP_BIT, RT_C}},
+    {0x7A, {"BIT", OP_BIT, RT_D}},
+    {0x7B, {"BIT", OP_BIT, RT_E}},
+    {0x7C, {"BIT", OP_BIT, RT_H}},
+    {0x7D, {"BIT", OP_BIT, RT_L}},
+    {0x7E, {"BIT", OP_BIT, RT_HL}},
+    {0x7F, {"BIT", OP_BIT, RT_A}},
+
+    // 0x8X - RES 0,r and RES 1,r
+    {0x80, {"RES", OP_RES, RT_B}},
+    {0x81, {"RES", OP_RES, RT_C}},
+    {0x82, {"RES", OP_RES, RT_D}},
+    {0x83, {"RES", OP_RES, RT_E}},
+    {0x84, {"RES", OP_RES, RT_H}},
+    {0x85, {"RES", OP_RES, RT_L}},
+    {0x86, {"RES", OP_RES, RT_HL}},
+    {0x87, {"RES", OP_RES, RT_A}},
+    {0x88, {"RES", OP_RES, RT_B}},
+    {0x89, {"RES", OP_RES, RT_C}},
+    {0x8A, {"RES", OP_RES, RT_D}},
+    {0x8B, {"RES", OP_RES, RT_E}},
+    {0x8C, {"RES", OP_RES, RT_H}},
+    {0x8D, {"RES", OP_RES, RT_L}},
+    {0x8E, {"RES", OP_RES, RT_HL}},
+    {0x8F, {"RES", OP_RES, RT_A}},
+
+    // 0x9X - RES 2,r and RES 3,r
+    {0x90, {"RES", OP_RES, RT_B}},
+    {0x91, {"RES", OP_RES, RT_C}},
+    {0x92, {"RES", OP_RES, RT_D}},
+    {0x93, {"RES", OP_RES, RT_E}},
+    {0x94, {"RES", OP_RES, RT_H}},
+    {0x95, {"RES", OP_RES, RT_L}},
+    {0x96, {"RES", OP_RES, RT_HL}},
+    {0x97, {"RES", OP_RES, RT_A}},
+    {0x98, {"RES", OP_RES, RT_B}},
+    {0x99, {"RES", OP_RES, RT_C}},
+    {0x9A, {"RES", OP_RES, RT_D}},
+    {0x9B, {"RES", OP_RES, RT_E}},
+    {0x9C, {"RES", OP_RES, RT_H}},
+    {0x9D, {"RES", OP_RES, RT_L}},
+    {0x9E, {"RES", OP_RES, RT_HL}},
+    {0x9F, {"RES", OP_RES, RT_A}},
+
+    // 0xAX - RES 4,r and RES 5,r
+    {0xA0, {"RES", OP_RES, RT_B}},
+    {0xA1, {"RES", OP_RES, RT_C}},
+    {0xA2, {"RES", OP_RES, RT_D}},
+    {0xA3, {"RES", OP_RES, RT_E}},
+    {0xA4, {"RES", OP_RES, RT_H}},
+    {0xA5, {"RES", OP_RES, RT_L}},
+    {0xA6, {"RES", OP_RES, RT_HL}},
+    {0xA7, {"RES", OP_RES, RT_A}},
+    {0xA8, {"RES", OP_RES, RT_B}},
+    {0xA9, {"RES", OP_RES, RT_C}},
+    {0xAA, {"RES", OP_RES, RT_D}},
+    {0xAB, {"RES", OP_RES, RT_E}},
+    {0xAC, {"RES", OP_RES, RT_H}},
+    {0xAD, {"RES", OP_RES, RT_L}},
+    {0xAE, {"RES", OP_RES, RT_HL}},
+    {0xAF, {"RES", OP_RES, RT_A}},
+
+    // 0xBX - RES 6,r and RES 7,r
+    {0xB0, {"RES", OP_RES, RT_B}},
+    {0xB1, {"RES", OP_RES, RT_C}},
+    {0xB2, {"RES", OP_RES, RT_D}},
+    {0xB3, {"RES", OP_RES, RT_E}},
+    {0xB4, {"RES", OP_RES, RT_H}},
+    {0xB5, {"RES", OP_RES, RT_L}},
+    {0xB6, {"RES", OP_RES, RT_HL}},
+    {0xB7, {"RES", OP_RES, RT_A}},
+    {0xB8, {"RES", OP_RES, RT_B}},
+    {0xB9, {"RES", OP_RES, RT_C}},
+    {0xBA, {"RES", OP_RES, RT_D}},
+    {0xBB, {"RES", OP_RES, RT_E}},
+    {0xBC, {"RES", OP_RES, RT_H}},
+    {0xBD, {"RES", OP_RES, RT_L}},
+    {0xBE, {"RES", OP_RES, RT_HL}},
+    {0xBF, {"RES", OP_RES, RT_A}},
+
+    // 0xCX - SET 0,r and SET 1,r
+    {0xC0, {"SET", OP_SET, RT_B}},
+    {0xC1, {"SET", OP_SET, RT_C}},
+    {0xC2, {"SET", OP_SET, RT_D}},
+    {0xC3, {"SET", OP_SET, RT_E}},
+    {0xC4, {"SET", OP_SET, RT_H}},
+    {0xC5, {"SET", OP_SET, RT_L}},
+    {0xC6, {"SET", OP_SET, RT_HL}},
+    {0xC7, {"SET", OP_SET, RT_A}},
+    {0xC8, {"SET", OP_SET, RT_B}},
+    {0xC9, {"SET", OP_SET, RT_C}},
+    {0xCA, {"SET", OP_SET, RT_D}},
+    {0xCB, {"SET", OP_SET, RT_E}},
+    {0xCC, {"SET", OP_SET, RT_H}},
+    {0xCD, {"SET", OP_SET, RT_L}},
+    {0xCE, {"SET", OP_SET, RT_HL}},
+    {0xCF, {"SET", OP_SET, RT_A}},
+
+    // 0xDX - SET 2,r and SET 3,r
+    {0xD0, {"SET", OP_SET, RT_B}},
+    {0xD1, {"SET", OP_SET, RT_C}},
+    {0xD2, {"SET", OP_SET, RT_D}},
+    {0xD3, {"SET", OP_SET, RT_E}},
+    {0xD4, {"SET", OP_SET, RT_H}},
+    {0xD5, {"SET", OP_SET, RT_L}},
+    {0xD6, {"SET", OP_SET, RT_HL}},
+    {0xD7, {"SET", OP_SET, RT_A}},
+    {0xD8, {"SET", OP_SET, RT_B}},
+    {0xD9, {"SET", OP_SET, RT_C}},
+    {0xDA, {"SET", OP_SET, RT_D}},
+    {0xDB, {"SET", OP_SET, RT_E}},
+    {0xDC, {"SET", OP_SET, RT_H}},
+    {0xDD, {"SET", OP_SET, RT_L}},
+    {0xDE, {"SET", OP_SET, RT_HL}},
+    {0xDF, {"SET", OP_SET, RT_A}},
+
+    // 0xEX - SET 4,r and SET 5,r
+    {0xE0, {"SET", OP_SET, RT_B}},
+    {0xE1, {"SET", OP_SET, RT_C}},
+    {0xE2, {"SET", OP_SET, RT_D}},
+    {0xE3, {"SET", OP_SET, RT_E}},
+    {0xE4, {"SET", OP_SET, RT_H}},
+    {0xE5, {"SET", OP_SET, RT_L}},
+    {0xE6, {"SET", OP_SET, RT_HL}},
+    {0xE7, {"SET", OP_SET, RT_A}},
+    {0xE8, {"SET", OP_SET, RT_B}},
+    {0xE9, {"SET", OP_SET, RT_C}},
+    {0xEA, {"SET", OP_SET, RT_D}},
+    {0xEB, {"SET", OP_SET, RT_E}},
+    {0xEC, {"SET", OP_SET, RT_H}},
+    {0xED, {"SET", OP_SET, RT_L}},
+    {0xEE, {"SET", OP_SET, RT_HL}},
+    {0xEF, {"SET", OP_SET, RT_A}},
+
+    // 0xFX - SET 6,r and SET 7,r
+    {0xF0, {"SET", OP_SET, RT_B}},
+    {0xF1, {"SET", OP_SET, RT_C}},
+    {0xF2, {"SET", OP_SET, RT_D}},
+    {0xF3, {"SET", OP_SET, RT_E}},
+    {0xF4, {"SET", OP_SET, RT_H}},
+    {0xF5, {"SET", OP_SET, RT_L}},
+    {0xF6, {"SET", OP_SET, RT_HL}},
+    {0xF7, {"SET", OP_SET, RT_A}},
+    {0xF8, {"SET", OP_SET, RT_B}},
+    {0xF9, {"SET", OP_SET, RT_C}},
+    {0xFA, {"SET", OP_SET, RT_D}},
+    {0xFB, {"SET", OP_SET, RT_E}},
+    {0xFC, {"SET", OP_SET, RT_H}},
+    {0xFD, {"SET", OP_SET, RT_L}},
+    {0xFE, {"SET", OP_SET, RT_HL}},
+    {0xFF, {"SET", OP_SET, RT_A}},
+
+};
+
+
+
 // Initialize execute functions after map creation
 void initializeOpcodeExecution() {
 	static bool initialized = false;
@@ -296,8 +590,8 @@ void initializeOpcodeExecution() {
 	auto& mutable_opcodes = const_cast<std::unordered_map<uint8_t, opcode>&>(opcodeTable);
 
 	for (auto& [opcode_value, op] : mutable_opcodes) {
-		op.execute = [opcode_value](cpu& c) {
-			if (auto cmd = OpcodeCommandFactory::createCommand(opcode_value)) {
+		op.execute = [opcodeData = op](cpu& c) {
+			if (const auto cmd = OpcodeCommandFactory::createCommand(opcodeData)) {
 				cmd->execute(c);
 			}
 		};
@@ -305,8 +599,14 @@ void initializeOpcodeExecution() {
 	initialized = true;
 }
 
-opcode getOpcode(uint8_t opcode_value) {
+opcode getOpcode(const uint8_t opcode_value) {
 	initializeOpcodeExecution();
 	const auto it = opcodeTable.find(opcode_value);
-	return (it != opcodeTable.end()) ? it->second : opcodeTable.at(0x00); // fallback to NOP
+	return (it != opcodeTable.end()) ? it->second : opcodeTable.at(0); // fallback to NOP
+}
+
+extendedCBOpcode getCBOpcode(const uint8_t opcode_value)
+{
+	const auto it = cbOpcodeTable.find(opcode_value);
+	return (it != cbOpcodeTable.end()) ? it->second : extendedCBOpcode();
 }
