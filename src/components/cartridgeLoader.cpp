@@ -8,7 +8,7 @@
 
 bool cartridgeLoader::loadCartridge(const std::string cartridgePath)
 {
-	LOG_INFO("rom path: {}",cartridgePath);
+	CARTRIDGE_INFO("rom path: {}",cartridgePath);
 	std::ifstream cartridgeFile;
 	cartridgeFile.open(cartridgePath, std::ifstream::binary);
 
@@ -28,27 +28,27 @@ bool cartridgeLoader::loadCartridge(const std::string cartridgePath)
 	ctx.header = reinterpret_cast<cartirdge*>(ctx.romData + 0x100);
 	ctx.header->title[15] = 0;
 
-	LOG_INFO("Cartridge Loaded:\n");
-	LOG_INFO("\t Title    : " + std::string(ctx.header->title));
-	LOG_INFO("\t Type     : " + std::to_string(ctx.header->type) + " " + ROM_TYPES[ctx.header->type]);
-	LOG_INFO("\t ROM Size : " + std::to_string(32 << ctx.header->romSize) + "KB");
-	LOG_INFO("\t RAM Size : " + std::to_string(ctx.header->ramSize));
-	LOG_INFO("\t LIC Code : " + std::to_string(ctx.header->licCode) + "(" + getLicenseeName(ctx.header->licCode) + ")");
-	LOG_INFO("\t ROM Vers : " + std::to_string(ctx.header->version));
+	CARTRIDGE_INFO("Cartridge Loaded:\n");
+	CARTRIDGE_INFO("\t Title    : " + std::string(ctx.header->title));
+	CARTRIDGE_INFO("\t Type     : " + std::to_string(ctx.header->type) + " " + ROM_TYPES[ctx.header->type]);
+	CARTRIDGE_INFO("\t ROM Size : " + std::to_string(32 << ctx.header->romSize) + "KB");
+	CARTRIDGE_INFO("\t RAM Size : " + std::to_string(ctx.header->ramSize));
+	CARTRIDGE_INFO("\t LIC Code : " + std::to_string(ctx.header->licCode) + "(" + getLicenseeName(ctx.header->licCode) + ")");
+	CARTRIDGE_INFO("\t ROM Vers : " + std::to_string(ctx.header->version));
 
 	uint16_t x = 0;
 	for (uint16_t i = 0x0134; i <= 0x014C; i++) {
 		x = x - ctx.romData[i] - 1;
 	}
 
-	LOG_INFO("\t Checksum : " + std::to_string(ctx.header->checksum) + "(" + ((x & 0xFF) ? "PASSED" : "FAILED") + ")");
+	CARTRIDGE_INFO("\t Checksum : " + std::to_string(ctx.header->checksum) + "(" + ((x & 0xFF) ? "PASSED" : "FAILED") + ")");
 
 	return true;
 }
 
 uint8_t cartridgeLoader::read(uint16_t address)
 {
-	LOG_INFO("Reading from cartridge at address: 0x{:04X}", address);
+	//LOG_INFO("Reading from cartridge at address: 0x{:04X}", address);
 	return ctx.romData[address];
 }
 
