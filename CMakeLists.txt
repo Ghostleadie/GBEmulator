@@ -6,7 +6,7 @@ project(
         LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Enable Hot Reload for MSVC compilers if supported.
@@ -33,3 +33,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src)
 else()
     message(ERROR "src directory not found - cannot build project")
 endif()
+
+# Enable testing
+option(BUILD_TESTING "Build the testing tree." ON)
+enable_testing()
+
+# Add tests subdirectory
+add_subdirectory(tests)
