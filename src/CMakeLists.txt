@@ -47,6 +47,9 @@ add_executable(GameBoyEmulator main.cpp
         Utility/dbg.h
         Utility/dbg.cpp
         Utility/dbg.cpp
+        interfaces/IClock.h
+        components/emulatorClock.cpp
+        components/emulatorClock.h
 )
 
 target_precompile_headers(GameBoyEmulator PUBLIC pch.h)

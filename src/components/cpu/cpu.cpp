@@ -7,8 +7,13 @@
 #include <cstdint>
 #include "../../emulator.h"
 #include "../../Utility/dbg.h"
-#include "spdlog/fmt/bin_to_hex.h"
 #include "../../Utility/utility.h"
+
+#ifdef ENABLE_TESTING
+#pragma message("ENABLE_TESTING is defined")
+#else
+#pragma message("ENABLE_TESTING is NOT defined")
+#endif
 
 void cpu::init()
 {
@@ -23,10 +28,16 @@ void cpu::init()
 	registers.l = 0x4D;
 	registers.sp = 0xFFFE;
 
-	// Force disable boot ROM
-	m_bus->write(0xFF50, 0x01);
+	interruptEnableRegister = 0;
+	interruptFlags = 0;
+	masterInterruptEnabled = false;
+	enablingIME = false;
 
-	LOG_INFO("CPU initialized, PC=0x{:04X}, boot ROM disabled", registers.pc);
+
+	// Force disable boot ROM
+	//m_bus->write(0xFF50, 0x01);
+
+	//LOG_INFO("CPU initialized, PC=0x{:04X}, boot ROM disabled", registers.pc);
 }
 
 void cpu::fetchOpcode()
@@ -70,10 +81,10 @@ void cpu::fetchData()
 		{
 			//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 			uint16_t lowValue = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			uint16_t highValue = m_bus->read(registers.pc + 1);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			//fetched data equal to low and high shifted into the high position
 			fetchedData = lowValue | (highValue << 8);
@@ -106,7 +117,7 @@ void cpu::fetchData()
 		case AM_R_D8: // Register, 8-bit immediate: Load 8-bit immediate into register
 		{
 			fetchedData = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			registers.pc++;
 			break;
 		}
@@ -120,20 +131,20 @@ void cpu::fetchData()
 			}
 
 			fetchedData = m_bus->read(address);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			break;
 		}
 		case AM_R_HLI: // Register, HL increment: Load value from memory at HL into register, then increment HL
 		{
 			fetchedData = m_bus->read(readRegister(currentOpcodeData.reg2));
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			writeRegister(RT_HL, static_cast<uint16_t>(readRegister(RT_HL) + 1));
 			break;
 		}
 		case AM_R_HLD: // Register, HL decrement: Load value from memory at HL into register, then decrement HL
 		{
 			fetchedData = m_bus->read(readRegister(currentOpcodeData.reg2));
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			writeRegister(RT_HL, static_cast<uint16_t>(readRegister(RT_HL) - 1));
 			break;
 		}
@@ -156,7 +167,7 @@ void cpu::fetchData()
 		case AM_R_A8: // Register, 8-bit address: Load value from high memory at 0xFF00 + 8-bit immediate into register
 		{
 			fetchedData = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			registers.pc++;
 			break;
 		}
@@ -164,25 +175,25 @@ void cpu::fetchData()
 		{
 			memoryDestination = m_bus->read(registers.pc) | 0xFF00;
 			destinationIsMemory = true;
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			registers.pc++;
 			break;
 		}
 		case AM_HL_SPR: // HL, SP plus 8-bit signed immediate: Add signed immediate to SP and store result in HL
 		{
 			fetchedData = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			registers.pc++;
 			break;
 		}
-		case AM_D16: // 16-bit immediate: Load 16-bit immediate value
+		case AM_I16: // 16-bit immediate: Load 16-bit immediate value
 		{
 			//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 			const uint16_t lowValue = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			const uint16_t highValue = m_bus->read(registers.pc + 1);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			//fetched data equal to low or high shifted into the high position
 			fetchedData = lowValue | (highValue << 8);
@@ -190,21 +201,21 @@ void cpu::fetchData()
 			registers.pc += 2;
 			break;
 		}
-		case AM_D8: // 8-bit immediate: Load 8-bit immediate value
+		case AM_I8: // 8-bit immediate: Load 8-bit immediate value
 		{
 			fetchedData = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			registers.pc++;
 			break;
 		}
-		case AM_D16_R: // 16-bit immediate, Register: Load 16-bit immediate into register
+		case AM_I16_R: // 16-bit immediate, Register: Load 16-bit immediate into register
 		{
 			//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 			const uint16_t lowValue = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			const uint16_t highValue = m_bus->read(registers.pc + 1);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			//fetched data equal to low or high shifted into the high position
 			memoryDestination = lowValue | (highValue << 8);
@@ -217,7 +228,7 @@ void cpu::fetchData()
 		case AM_MR_D8: // Memory (register), 8-bit immediate: Write 8-bit immediate to memory address in register
 		{
 			fetchedData = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			registers.pc++;
 			memoryDestination = readRegister(currentOpcodeData.reg2);
 			destinationIsMemory = true;
@@ -228,17 +239,17 @@ void cpu::fetchData()
 			memoryDestination = readRegister(currentOpcodeData.reg1);
 			destinationIsMemory = true;
 			fetchedData = m_bus->read(readRegister(currentOpcodeData.reg1));
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			break;
 		}
 		case AM_A16_R: // 16-bit address, Register: Write register value to memory at 16-bit immediate address
 		{
 			//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 			const uint16_t lowValue = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			const uint16_t highValue = m_bus->read(registers.pc + 1);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			//fetched data equal to low or high shifted into the high position
 			memoryDestination = lowValue | (highValue << 8);
@@ -252,17 +263,17 @@ void cpu::fetchData()
 		{
 			//can only read 8 bytes so we have to do it in 2 parts for 16 bytes
 			const uint16_t lowValue = m_bus->read(registers.pc);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			const uint16_t highValue = m_bus->read(registers.pc + 1);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 
 			//fetched data equal to low or high shifted into the high position
 			uint16_t address = lowValue | (highValue << 8);
 
 			registers.pc += 2;
 			fetchedData = m_bus->read(address);
-			emulator::cycles(1);
+			getClock()->cycles(1);
 			break;
 		}
 		default:
@@ -272,7 +283,6 @@ void cpu::fetchData()
 		}
 	}
 }
-
 
 uint16_t cpu::readRegister(const registryType reg) const
 {
@@ -315,40 +325,9 @@ uint16_t cpu::readRegister(const registryType reg) const
 
 void cpu::emulateCycle()
 {
-	// Test memory access
-	//LOG_INFO("Testing serial register access...");
-	//m_bus->write(0xFF01, 'A');  // Write test character
-	//m_bus->write(0xFF02, 0x81); // Set transfer start bit
-	//LOG_INFO("Wrote test data to serial registers");
-
-	if (registers.pc == 0x0216) {
-		uint8_t opcode = m_bus->read(registers.pc);
-		uint8_t data1 = m_bus->read(registers.pc + 1);
-		uint8_t data2 = m_bus->read(registers.pc + 2);
-		LOG_INFO("At 0x0216: opcode=0x{:02X}, data1=0x{:02X}, data2=0x{:02X}",
-				 opcode, data1, data2);
-	}
-
-	static uint16_t lastPC = 0;
-	if (registers.pc != lastPC) {
-		// Check if this instruction might write to serial
-		uint8_t opcode = m_bus->read(registers.pc);
-		if (opcode == 0xEA || opcode == 0x02 || opcode == 0x12) { // LD (nn),A or LD (BC),A or LD (DE),A
-			uint16_t addr = 0;
-			if (opcode == 0xEA) {
-				addr = m_bus->read(registers.pc + 1) | (m_bus->read(registers.pc + 2) << 8);
-			}
-			if (addr == 0xFF01 || addr == 0xFF02) {
-				LOG_INFO("Potential serial write at PC=0x{:04X}, opcode=0x{:02X}, addr=0x{:04X}",
-						 registers.pc, opcode, addr);
-			}
-		}
-		lastPC = registers.pc;
-	}
-
 	if (!halted)
 	{
-
+		uint16_t pc_before = registers.pc;
 		if (steppingMode == true)
 		{
 
@@ -356,13 +335,14 @@ void cpu::emulateCycle()
 			{
 				fetchOpcode();
 				fetchData();
-				dbg::dbgUpdate(m_bus);
-				dbg::dbgPrint();
 				if (currentOpcodeData.execute != nullptr)
 				{
-					LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, registers.pc);
+					LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, pc_before);
 					currentOpcodeData.execute(*this);
 					opcodesHistory.push_back(currentOpcodeData);
+					LOG_INFO("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
+																	registers.a, registers.f, registers.b, registers.c, registers.d, registers.e, registers.h, registers.l, registers.sp, pc_before,
+																	m_bus->read(pc_before), m_bus->read(pc_before+1), m_bus->read(pc_before+2), m_bus->read(pc_before+3));
 				}
 				else
 				{
@@ -373,24 +353,22 @@ void cpu::emulateCycle()
 		}
 		else
 		{
-			static uint64_t cycleCount = 0;
-			cycleCount++;
 
-			if (cycleCount % 250000 == 0) {
-				LOG_INFO("Cycle {}: PC=0x{:04X}, opcode=0x{:02X}, A=0x{:02X}, BC=0x{:04X}, DE=0x{:04X}, HL=0x{:04X}",
-						 cycleCount, registers.pc, m_bus->read(registers.pc),
-						 registers.a, registers.bc, registers.de, registers.hl);
-			}
 			fetchOpcode();
 			fetchData();
-			dbg::dbgUpdate(m_bus);
-			dbg::dbgPrint();
 			if (currentOpcodeData.execute != nullptr)
 			{
 
-				LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, registers.pc);
+				LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, pc_before);
 				currentOpcodeData.execute(*this);
+				//LOG_INFO("A: {:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{} PC:{} PCMEM:{},{},{},{}= {} PC=0x{:04X}, opcode=0x{:02X}, A=0x{:02X}, BC=0x{:04X}, DE=0x{:04X}, HL=0x{:04X}",
+				//		 cycleCount, registers.pc, m_bus->read(registers.pc),
+				//		 registers.a, registers.bc, registers.de, registers.hl);
 				opcodesHistory.push_back(currentOpcodeData);
+				LOG_INFO("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
+																	registers.a, registers.f, registers.b, registers.c, registers.d, registers.e, registers.h, registers.l, registers.sp, pc_before,
+																	m_bus->read(pc_before), m_bus->read(pc_before+1), m_bus->read(pc_before+2), m_bus->read(pc_before+3));
+
 			}
 			else
 			{
@@ -400,7 +378,7 @@ void cpu::emulateCycle()
 	}
 	else
 	{
-		emulator::cycles(1);
+		getClock()->cycles(1);
 
 		if (interruptFlags)
 		{
@@ -410,12 +388,15 @@ void cpu::emulateCycle()
 
 	if (masterInterruptEnabled)
 	{
+		handleInterrupts();
 		enablingIME = false;
 	}
-	else if (enablingIME)
+
+	if (enablingIME)
 	{
 		masterInterruptEnabled = true;
 	}
+
 }
 
 void cpu::writeRegister(const registryType reg, const uint16_t& value)
@@ -479,22 +460,28 @@ void cpu::handleInterrupts()
 	if (interruptCheck(0x40, INT_VBLANK))
 	{
 		LOG_TRACE("INT_BLANK interrupt");
+		return;
 	}
-	else if (interruptCheck(0x48, INT_LCD_STAT))
+	if (interruptCheck(0x48, INT_LCD_STAT))
 	{
 		LOG_TRACE("INT_LCD_STAT interrupt");
+		return;
 	}
-	else if (interruptCheck(0x50, INT_TIMER))
+	if (interruptCheck(0x50, INT_TIMER))
 	{
 		LOG_TRACE("INT_TIMER interrupt");
+		return;
 	}
-	else if (interruptCheck(0x58, INT_SERIAL))
+	if (interruptCheck(0x58, INT_SERIAL))
 	{
+
 		LOG_TRACE("INT_SERIAL interrupt");
+		return;
 	}
-	else if (interruptCheck(0x60, INT_JOYPAD))
+	if (interruptCheck(0x60, INT_JOYPAD))
 	{
 		LOG_TRACE("INT_JOYPAD interrupt");
+		return;
 	}
 }
 
@@ -517,6 +504,11 @@ bool cpu::interruptCheck(uint16_t address, interruptTypes type)
 	return false;
 }
 
+void cpu::requestInterrupt(interruptTypes type)
+{
+	interruptFlags |= type;
+}
+
 uint8_t cpu::getIERegister() const
 {
 	return interruptEnableRegister;
@@ -532,37 +524,58 @@ opcode cpu::getCurrentOpcodeData() const
 	return currentOpcodeData;
 }
 
+void cpu::execSingleInstructionWithOpcode(uint8_t opcode)
+{
+	currentOpcode = opcode;
+	currentOpcodeData = getOpcode(currentOpcode);
+	fetchData();
+	if (currentOpcodeData.execute != nullptr)
+	{
+		currentOpcodeData.execute(*this);
+	}
+}
+
+void cpu::execSingleInstruction()
+{
+	fetchOpcode();
+	fetchData();
+	if (currentOpcodeData.execute != nullptr)
+	{
+		currentOpcodeData.execute(*this);
+	}
+}
+
 bool cpu::checkConditionFlags()
 {
 	const bool z = utility::checkBit(registers.f, 7);
 	const bool c = utility::checkBit(registers.f, 4);
 
-	LOG_INFO("checkConditionFlags: f_register=0x{:02X}, z_bit_7={}, c_bit_4={}, cond={}",
-				 registers.f, z, c, static_cast<int>(currentOpcodeData.cond));
+	//LOG_INFO("checkConditionFlags: f_register=0x{:02X}, z_bit_7={}, c_bit_4={}, cond={}",
+	//			 registers.f, z, c, static_cast<int>(currentOpcodeData.cond));
 
 	switch (currentOpcodeData.cond)
 	{
 		case CT_NONE:
-			LOG_INFO("CT_NONE: returning true");
+			//LOG_INFO("CT_NONE: returning true");
 			return true;
 		case CT_C:
-			LOG_INFO("CT_C: returning {}", c);
+			//LOG_INFO("CT_C: returning {}", c);
 			return c;
 		case CT_NC:
-			LOG_INFO("CT_NC: returning {}", !c);
+			//LOG_INFO("CT_NC: returning {}", !c);
 			return !c;
 		case CT_Z:
-			LOG_INFO("CT_Z: returning {}", z);
+			//LOG_INFO("CT_Z: returning {}", z);
 			return z;
 		case CT_NZ:
-			LOG_INFO("CT_NZ: returning {} (z={})", !z, z);
+			//LOG_INFO("CT_NZ: returning {} (z={})", !z, z);
 			return !z;
 	}
-	LOG_WARN("Unknown condition type: {}", static_cast<int>(currentOpcodeData.cond));
+	//LOG_WARN("Unknown condition type: {}", static_cast<int>(currentOpcodeData.cond));
 	return false;
 }
 
-void cpu::setFlags(const uint8_t z, const uint8_t n, const uint8_t h, const uint8_t c)
+void cpu::setFlags(const int8_t z, const int8_t n, const int8_t h, const int8_t c)
 {
 		setZeroFlag(z);
 
@@ -573,66 +586,50 @@ void cpu::setFlags(const uint8_t z, const uint8_t n, const uint8_t h, const uint
 		setCarryFlag(c);
 }
 
-void cpu::setZeroFlag(const uint8_t z)
+void cpu::setZeroFlag(const int8_t z)
 {
-	if (z != static_cast<uint8_t>(-1))
+	if (z != -1)
 	{
-		LOG_INFO("BEFORE setBitTo: registers.f=0x{:02X}, setting bit 7 to {}", registers.f, z);
+		//LOG_INFO("BEFORE setBitTo: registers.f=0x{:02X}, setting bit 7 to {}", registers.f, z);
 		utility::setBitTo(registers.f, 7, z);
-		LOG_INFO("AFTER setBitTo: registers.f=0x{:02X}", registers.f);
-	}
-	else
-	{
-		LOG_ERROR("Zero Flag Error");
+		//LOG_INFO("AFTER setBitTo: registers.f=0x{:02X}", registers.f);
 	}
 }
 
-void cpu::setSubtractFlag(const uint8_t n)
+void cpu::setSubtractFlag(const int8_t n)
 {
 		if (n != -1)
 		{
 			utility::setBitTo(registers.f, 6, n);
 		}
-		else
-		{
-			LOG_ERROR("Subtract Flag Error");
-		}
 }
 
-void cpu::setHalfCarryFlag(const uint8_t h)
+void cpu::setHalfCarryFlag(const int8_t h)
 {
 		if (h != -1)
 		{
 			utility::setBitTo(registers.f, 5, h);
 		}
-		else
-		{
-			LOG_ERROR("Half Carry Flag Error");
-		}
 }
 
-void cpu::setCarryFlag(const uint8_t c)
+void cpu::setCarryFlag(const int8_t c)
 {
 	if (c != -1)
 	{
 		utility::setBitTo(registers.f, 4, c);
 	}
-	else
-	{
-		LOG_ERROR("Carry Flag Error");
-	}
 }
 
 void cpu::pushStack(const uint8_t value)
 {
-	getRegisters().sp--;
-	m_bus->write(getRegisters().sp, value);
+	getRegisters()->sp--;
+	m_bus->write(getRegisters()->sp, value);
 }
 
 uint8_t cpu::popStack()
 {
-	getRegisters().sp++;
-	return m_bus->read(getRegisters().sp - 1);
+	getRegisters()->sp++;
+	return m_bus->read(getRegisters()->sp - 1);
 }
 
 void cpu::pushStack16(const uint16_t value)

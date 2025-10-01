@@ -5,12 +5,16 @@
 #ifndef GAMEBOYEMULATOR_COMPONENTMESSANGER_H
 #define GAMEBOYEMULATOR_COMPONENTMESSANGER_H
 
+#include <memory>
+#include <string>
+#include <cstdint>
+
 class memoryComponent;
 
 class memorycomponentMessanger
 {
 public:
-    virtual void notify(const std::string& event, std::shared_ptr<memoryComponent> sender) = 0;
+    //virtual void notify(const std::string& event, std::shared_ptr<memoryComponent> sender) = 0;
 	virtual ~memorycomponentMessanger() = default;
 
 	// Read a byte from a device-local address (offset from base).

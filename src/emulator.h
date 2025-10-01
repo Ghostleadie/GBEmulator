@@ -8,6 +8,8 @@
 #include <string>
 #include <cstdint>
 
+
+#include "components/emulatorClock.h"
 #include "UI/debugUI.h"
 #include "UI/mainMenu.h"
 
@@ -41,7 +43,8 @@ public:
 	const std::shared_ptr<ppu>& getPPU() const { return m_ppu; }
 	const std::shared_ptr<timer>& getTimer() const { return m_timer;}
 
-	static void cycles(uint64_t cycles);
+	//std::thread emuThread;
+	//std::atomic<bool> running{false};
 public:
 	bool debugUIActive = false;
 	emulatorStates state = EMU_STATE_MENU;
@@ -50,12 +53,15 @@ private:
 	bool romLoaded = false;
 	bool mainmenuActive = true;
 	std::string filepath;
+
 	std::shared_ptr<cpu> m_cpu;
 	std::shared_ptr<cartridgeLoader> m_cartridge;
 	std::shared_ptr<bus> m_bus;
 	std::shared_ptr<joypad> m_joypad;
 	std::shared_ptr<ppu> m_ppu;
 	std::shared_ptr<timer> m_timer;
+	std::shared_ptr<emulatorClock> m_clock;
+
 	std::unique_ptr<mainMenu> m_menu;
 	std::unique_ptr<debugUI> m_debugUI;
 };

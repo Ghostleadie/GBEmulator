@@ -13,12 +13,12 @@ void AdcCommand::execute(cpu& m_cpu)
 {
 	LOG_TRACE("Running ADC Command");
 	const uint16_t u = m_cpu.getFetchedData();
-	const uint16_t a = m_cpu.getRegisters().a;
-	const uint16_t c = utility::checkBit(m_cpu.getRegisters().f, 4);
+	const uint16_t a = m_cpu.getRegisters()->a;
+	const uint16_t c = utility::checkBit(m_cpu.getRegisters()->f, 4);
 
-	m_cpu.getRegisters().a = (a + u + c) & 0xFF;
+	m_cpu.getRegisters()->a = (a + u + c) & 0xFF;
 
-	m_cpu.setFlags(m_cpu.getRegisters().a == 0, 0, (a & 0xF) + (u & 0xF) + c > 0xF, a + u + c > 0xFF);
+	m_cpu.setFlags(m_cpu.getRegisters()->a == 0, 0, (a & 0xF) + (u & 0xF) + c > 0xF, a + u + c > 0xFF);
 }
 
 void Add8BitCommand::execute(cpu& m_cpu)
@@ -42,7 +42,7 @@ void Add16BitCommand::execute(cpu& m_cpu)
 	const uint16_t fetchedVal = m_cpu.getFetchedData();
 	const uint32_t result = reg1Val + fetchedVal;
 
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 
 	const int h = (reg1Val & 0xFFF) + (fetchedVal & 0xFFF) >= 0x1000;
 	const int c = result >= 0x10000;
@@ -66,30 +66,30 @@ void AddSPCommand::execute(cpu& m_cpu)
 
 void AndCommand::execute(cpu& m_cpu)
 {
-	m_cpu.getRegisters().a &= m_cpu.getFetchedData();
-	m_cpu.setFlags(m_cpu.getRegisters().a == 0, 0, 1, 0);
+	m_cpu.getRegisters()->a &= m_cpu.getFetchedData();
+	m_cpu.setFlags(m_cpu.getRegisters()->a == 0, 0, 1, 0);
 }
 
 void CallCommand::execute(cpu& m_cpu)
 {
 	if (m_cpu.checkConditionFlags())
 	{
-		emulator::cycles(2);
-		m_cpu.pushStack16(m_cpu.getRegisters().pc);
+		m_cpu.getClock()->cycles(2);
+		m_cpu.pushStack16(m_cpu.getRegisters()->pc);
 
-		m_cpu.getRegisters().pc = m_cpu.getFetchedData();
-		emulator::cycles(1);
+		m_cpu.getRegisters()->pc = m_cpu.getFetchedData();
+		m_cpu.getClock()->cycles(1);
 	}
 }
 
 void CcfCommand::execute(cpu& m_cpu)
 {
-	m_cpu.setFlags(-1, 0, 0, utility::checkBit(m_cpu.getRegisters().f, 4) ^ 1);
+	m_cpu.setFlags(-1, 0, 0, utility::checkBit(m_cpu.getRegisters()->f, 4) ^ 1);
 }
 
 void CbCommand::execute(cpu& m_cpu)
 {
-	const extendedCBOpcode cbOp = getCBOpcode((m_cpu.getFetchedData() >> 6) & 0b11);
+	/*const extendedCBOpcode cbOp = getCBOpcode((m_cpu.getFetchedData() >> 6) & 0b11);
 	uint8_t value = static_cast<uint8_t>(m_cpu.readRegister(cbOp.reg));
 	uint8_t bit = (m_cpu.getFetchedData() >> 3) & 0b111;
 	if (cbOp.reg == RT_HL)
@@ -97,10 +97,10 @@ void CbCommand::execute(cpu& m_cpu)
 		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
 	}
 
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 	if (cbOp.reg == RT_HL)
 	{
-		emulator::cycles(2);
+		m_cpu.getClock()->cycles(2);
 	}
 
 	switch (cbOp.type)
@@ -112,13 +112,13 @@ void CbCommand::execute(cpu& m_cpu)
 		}
 		case OP_RES:
 		{
-			value &= ~(1 << bit);
+			value &= static_cast<uint8_t>(~(1u << bit));
 			m_cpu.writeRegister(cbOp.reg, value);
 			return;
 		}
 		case OP_SET:
 		{
-			value |= ~(1 << bit);
+			value |= static_cast<uint8_t>(1u << bit);
 			m_cpu.writeRegister(cbOp.reg, value);
 			return;
 		}
@@ -150,7 +150,7 @@ void CbCommand::execute(cpu& m_cpu)
 		{
 			uint8_t oldValue = value;
 			value <<= 1;
-			value |= utility::checkBit(m_cpu.getRegisters().f, 4);
+			value |= utility::checkBit(m_cpu.getRegisters()->f, 4);
 
 			m_cpu.writeRegister(cbOp.reg, value);
 			m_cpu.setFlags(!value, 0, 0, !!(oldValue & 0x80));
@@ -160,7 +160,7 @@ void CbCommand::execute(cpu& m_cpu)
 		{
 			uint8_t oldValue = value;
 			value >>= 1;
-			value |= (utility::checkBit(m_cpu.getRegisters().f, 4) << 7);
+			value |= (utility::checkBit(m_cpu.getRegisters()->f, 4) << 7);
 
 			m_cpu.writeRegister(cbOp.reg, value);
 			m_cpu.setFlags(!value, 0, 0, oldValue & 1);
@@ -199,21 +199,134 @@ void CbCommand::execute(cpu& m_cpu)
 		default:
 		{
 			LOG_ERROR("Invalid CB Opcode");
+		};*/
+
+		const extendedCBOpcode cbOp = getCBOpcode((m_cpu.getFetchedData() >> 6) & 0b11);
+
+		// Load the operand properly (register or (HL))
+		uint8_t value;
+		const bool operandIsMemHL = (cbOp.reg == RT_HL);
+
+		if (operandIsMemHL) {
+			value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
+		} else {
+			value = static_cast<uint8_t>(m_cpu.readRegister(cbOp.reg));
+		}
+
+		m_cpu.getClock()->cycles(1);
+		if (operandIsMemHL) {
+			m_cpu.getClock()->cycles(2);
+		}
+
+		const uint8_t bit = static_cast<uint8_t>((m_cpu.getFetchedData() >> 3) & 0b111);
+
+		auto writeBack = [&](uint8_t v) {
+			if (operandIsMemHL) {
+				m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), v);
+			} else {
+				m_cpu.writeRegister(cbOp.reg, v);
+			}
 		};
-	}
+
+		switch (cbOp.type)
+		{
+			case OP_BIT:
+				m_cpu.setFlags(!(value & (1u << bit)), 0, 1, -1);
+				return;
+
+			case OP_RES:
+				value &= static_cast<uint8_t>(~(1u << bit));
+				writeBack(value);
+				return;
+
+			case OP_SET:
+				// BUGFIX: was `value |= ~(1 << bit)` which forces 0xFF
+				value |= static_cast<uint8_t>(1u << bit);
+				writeBack(value);
+				return;
+
+			case OP_RLC: {
+				const bool c = (value & 0x80u) != 0;
+				uint8_t result = static_cast<uint8_t>((value << 1) | (c ? 1u : 0u));
+				writeBack(result);
+				m_cpu.setFlags(result == 0, 0, 0, c);
+				return;
+			}
+
+			case OP_RRC: {
+				const uint8_t old = value;
+				value = static_cast<uint8_t>((value >> 1) | (old << 7));
+				writeBack(value);
+				m_cpu.setFlags(value == 0, 0, 0, (old & 1u) != 0);
+				return;
+			}
+
+			case OP_RL: {
+				const uint8_t old = value;
+				value = static_cast<uint8_t>((value << 1) | (utility::checkBit(m_cpu.getRegisters()->f, 4)));
+				writeBack(value);
+				m_cpu.setFlags(value == 0, 0, 0, (old & 0x80u) != 0);
+				return;
+			}
+
+			case OP_RR: {
+				const uint8_t old = value;
+				value = static_cast<uint8_t>((value >> 1) | (utility::checkBit(m_cpu.getRegisters()->f, 4) << 7));
+				writeBack(value);
+				m_cpu.setFlags(value == 0, 0, 0, (old & 1u) != 0);
+				return;
+			}
+
+			case OP_SLA: {
+				const uint8_t old = value;
+				value = static_cast<uint8_t>(value << 1);
+				writeBack(value);
+				m_cpu.setFlags(value == 0, 0, 0, (old & 0x80u) != 0);
+				return;
+			}
+
+			case OP_SRA: {
+				const uint8_t old = value;
+				// Keep MSB
+				value = static_cast<uint8_t>((value & 0x80u) | (value >> 1));
+				writeBack(value);
+				m_cpu.setFlags(value == 0, 0, 0, (old & 1u) != 0);
+				return;
+			}
+
+			case OP_SWAP: {
+				value = static_cast<uint8_t>(((value & 0xF0u) >> 4) | ((value & 0x0Fu) << 4));
+				writeBack(value);
+				m_cpu.setFlags(value == 0, 0, 0, 0);
+				return;
+			}
+
+			case OP_SRL: {
+				const uint8_t old = value;
+				value = static_cast<uint8_t>(value >> 1);
+				writeBack(value);
+				m_cpu.setFlags(value == 0, 0, 0, (old & 1u) != 0);
+				return;
+			}
+
+			default:
+				LOG_ERROR("Invalid CB Opcode");
+				return;
+		}
 }
+//}
 
 void CplCommand::execute(cpu& m_cpu)
 {
-	m_cpu.getRegisters().a = ~m_cpu.getRegisters().a;
+	m_cpu.getRegisters()->a = ~m_cpu.getRegisters()->a;
 	m_cpu.setFlags(-1, 1, 1, -1);
 }
 
 void CpCommand::execute(cpu& m_cpu)
 {
-	const int n = static_cast<int>(m_cpu.getRegisters().a) - static_cast<int>(m_cpu.getFetchedData());
+	const int n = static_cast<int>(m_cpu.getRegisters()->a) - static_cast<int>(m_cpu.getFetchedData());
 
-	m_cpu.setFlags(n == 0, 1, (static_cast<int>(m_cpu.getRegisters().a) & 0x0F) - (static_cast<int>(m_cpu.getFetchedData()) & 0x0F) < 0, n < 0);
+	m_cpu.setFlags(n == 0, 1, (static_cast<int>(m_cpu.getRegisters()->a) & 0x0F) - (static_cast<int>(m_cpu.getFetchedData()) & 0x0F) < 0, n < 0);
 }
 
 void DaaCommand::execute(cpu& m_cpu)
@@ -221,25 +334,24 @@ void DaaCommand::execute(cpu& m_cpu)
 	uint8_t u = 0;
 	int fc = 0;
 
-	if (utility::checkBit(m_cpu.getRegisters().f, 5) || (!utility::checkBit(m_cpu.getRegisters().f, 6) && (m_cpu.getRegisters().a & 0xF) > 9)) {
+	if (utility::checkBit(m_cpu.getRegisters()->f, 5) || (!utility::checkBit(m_cpu.getRegisters()->f, 6) && (m_cpu.getRegisters()->a & 0xF) > 9)) {
 		u = 6;
 	}
 
-	if (utility::checkBit(m_cpu.getRegisters().f, 4) || (!utility::checkBit(m_cpu.getRegisters().f, 6) && m_cpu.getRegisters().a > 0x99)) {
+	if (utility::checkBit(m_cpu.getRegisters()->f, 4) || (!utility::checkBit(m_cpu.getRegisters()->f, 6) && m_cpu.getRegisters()->a > 0x99)) {
 		u |= 0x60;
 		fc = 1;
 	}
 
-	m_cpu.getRegisters().a += utility::checkBit(m_cpu.getRegisters().f, 6) ? -u : u;
+	m_cpu.getRegisters()->a += utility::checkBit(m_cpu.getRegisters()->f, 6) ? -u : u;
 
-	m_cpu.setFlags(m_cpu.getRegisters().a == 0, -1, 0, fc);
+	m_cpu.setFlags(m_cpu.getRegisters()->a == 0, -1, 0, fc);
 }
 
 void Dec16BitCommand::execute(cpu& m_cpu)
 {
 	uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - 1;
-	emulator::cycles(1);
-
+	m_cpu.getClock()->cycles(1);
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
 		value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL)) - 1;
 		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
@@ -259,12 +371,6 @@ void Dec8BitCommand::execute(cpu& m_cpu)
 {
 	uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - 1;
 
-	// Log C register specifically for debugging
-	if (m_cpu.getCurrentOpcodeData().reg1 == RT_C) {
-		LOG_INFO("DEC C: old_value=0x{:02X}, new_value=0x{:02X}",
-				 value + 1, value & 0xFF);
-	}
-
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
 		value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL)) - 1;
 		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
@@ -277,7 +383,7 @@ void Dec8BitCommand::execute(cpu& m_cpu)
 		return;
 	}
 
-	m_cpu.setFlags(value == 0, 0, (value & 0x0F) == 0x0F, -1);
+	m_cpu.setFlags(value == 0, 1, (value & 0x0F) == 0x0F, -1);
 }
 
 void DiCommand::execute(cpu& m_cpu)
@@ -309,50 +415,24 @@ void Inc8BitCommand::execute(cpu& m_cpu)
 	else
 	{
 		// Regular register case
-		oldValue = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) & 0xFF;
+		oldValue = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
 		value = (oldValue + 1) & 0xFF;
 		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
-	}
-
-	LOG_INFO("INC: reg={}, old_value=0x{:02X}, new_value=0x{:02X}, zero_flag={}",
-			 static_cast<int>(m_cpu.getCurrentOpcodeData().reg1),
-			 oldValue,
-			 value,
-			 value == 0);
-
-	// Set flags for all INC 8-bit operations except INC 16-bit (which have different opcodes)
-	m_cpu.setFlags(value == 0, 0, (oldValue & 0x0F) == 0x0F, -1);
-	/*uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) + 1;
-
-	LOG_INFO("INC: reg={}, old_value=0x{:02X}, new_value=0x{:02X}, zero_flag={}",
-		static_cast<int>(m_cpu.getCurrentOpcodeData().reg1),
-		m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1),
-		value & 0xFF,
-		(value & 0xFF) == 0);
-
-	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR)
-	{
-		uint16_t oldValue = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
-        value = (oldValue + 1) & 0xFF;
-		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
-	}
-	else
-	{
-		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
-		value &= 0xFF; // Ensure 8-bit result for flag calculation
 	}
 
 	if ((m_cpu.getCurrentOpcode() & 0x03) == 0x03) {
 		return;
 	}
 
-	m_cpu.setFlags((value & 0xFF) == 0, 0, (value & 0x0F) == 0, -1);*/
+	int h = ((oldValue & 0x0F) + 1) > 0x0F;
+	// Set flags for all INC 8-bit operations except INC 16-bit (which have different opcodes)
+	m_cpu.setFlags(value == 0, 0, h, -1);
 }
 
 void Inc16BitCommand::execute(cpu& m_cpu)
 {
 	uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) + 1;
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
 		value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL)) + 1;
@@ -360,22 +440,22 @@ void Inc16BitCommand::execute(cpu& m_cpu)
 		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
 	} else {
 		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
-		value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
+		//value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
 	}
 
 	if ((m_cpu.getCurrentOpcode() & 0x03) == 0x03) {
 		return;
 	}
 
-	m_cpu.setFlags(value == 0, 0, (value & 0x0F) == 0, -1);
+	//m_cpu.setFlags(value == 0, 0, (value & 0x0F) == 0, -1);
 }
 
 void JpCommand::execute(cpu& m_cpu)
 {
 	if (m_cpu.checkConditionFlags())
 	{
-		m_cpu.getRegisters().pc = m_cpu.getFetchedData();
-		emulator::cycles(1);
+		m_cpu.getRegisters()->pc = m_cpu.getFetchedData();
+		m_cpu.getClock()->cycles(1);
 	}
 }
 
@@ -387,21 +467,21 @@ void JphlCommand::execute(cpu& m_cpu)
 void JrCommand::execute(cpu& m_cpu)
 {
 	const int8_t rel = static_cast<int8_t>(m_cpu.getFetchedData() & 0xFF);
-	const uint16_t address  = m_cpu.getRegisters().pc + rel;
+	const uint16_t address  = m_cpu.getRegisters()->pc + rel;
 
 	bool shouldJump = m_cpu.checkConditionFlags();
 
-	LOG_INFO("JR: opcode=0x{:02X}, rel={}, target_addr=0x{:04X}, should_jump={}, pc_before=0x{:04X}",
-			 m_cpu.getCurrentOpcode(), rel, address, shouldJump, m_cpu.getRegisters().pc);
+	//LOG_INFO("JR: opcode=0x{:02X}, rel={}, target_addr=0x{:04X}, should_jump={}, pc_before=0x{:04X}",
+	//		 m_cpu.getCurrentOpcode(), rel, address, shouldJump, m_cpu.getRegisters()->pc);
 	if (shouldJump)
 	{
-		LOG_INFO("JR: Taking jump to 0x{:04X}", address);
-		m_cpu.getRegisters().pc = address;
-		emulator::cycles(1);
+		//LOG_INFO("JR: Taking jump to 0x{:04X}", address);
+		m_cpu.getRegisters()->pc = address;
+		m_cpu.getClock()->cycles(1);
 	}
 	else
 	{
-		LOG_INFO("JR: Not taking jump, continuing to next instruction");
+		//LOG_INFO("JR: Not taking jump, continuing to next instruction");
 	}
 
 }
@@ -411,9 +491,9 @@ void Ld8BitCommand::execute(cpu& m_cpu)
 	//check if writing to memory or a register
 	if (m_cpu.getDestinationIsMemory()) {
 		
-		m_cpu.getBus().lock()->write(m_cpu.getMemoryDestination(), m_cpu.getFetchedData());
+		m_cpu.getBus().lock()->write(m_cpu.getMemoryDestination(), static_cast<uint8_t>(m_cpu.getFetchedData()));
 		
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 
 		return;
 	}
@@ -423,9 +503,9 @@ void Ld8BitCommand::execute(cpu& m_cpu)
 void Ld16BitCommand::execute(cpu& m_cpu)
 {
 	if (m_cpu.getDestinationIsMemory()) {
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 		m_cpu.getBus().lock()->write16(m_cpu.getMemoryDestination(), m_cpu.getFetchedData());
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 
 		return;
 	}
@@ -443,21 +523,39 @@ void LdSpecialCommand::execute(cpu& m_cpu)
 
 	m_cpu.writeRegister(RT_HL, result);
 	m_cpu.setFlags(0, 0, h, c);
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 }
 
 void LdhCommand::execute(cpu& m_cpu)
 {
-	if (m_cpu.getCurrentOpcodeData().reg1 == RT_A)
+	// Support both LDH (a8),A / LDH A,(a8) and LD (FF00+C),A / LD A,(FF00+C)
+	const bool usesC = (m_cpu.getCurrentOpcodeData().reg1 == RT_C) ||
+					   (m_cpu.getCurrentOpcodeData().reg2 == RT_C);
+	const uint16_t offset = usesC
+		? (m_cpu.readRegister(RT_C) & 0xFFu)
+		: (m_cpu.getFetchedData() & 0xFFu);
+	const uint16_t addr = static_cast<uint16_t>(0xFF00u + offset);
+
+	if (m_cpu.getCurrentOpcodeData().reg1 == RT_A) {
+		// LD A,(FF00+n) or LD A,(FF00+C)
+		const uint8_t v = m_cpu.getBus().lock()->read(addr) & 0xFFu;
+		m_cpu.writeRegister(RT_A, v);
+	} else {
+		// LD (FF00+n),A or LD (FF00+C),A
+		m_cpu.getBus().lock()->write(addr, m_cpu.getRegisters()->a & 0xFFu);
+	}
+
+	m_cpu.getClock()->cycles(1);
+	/*if (m_cpu.getCurrentOpcodeData().reg1 == RT_A)
 	{
 		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, m_cpu.getBus().lock()->read(0xFF00 + m_cpu.getFetchedData() ));
 	}
 	else
 	{
-		m_cpu.getBus().lock()->write(0xFF00 | m_cpu.getFetchedData(), m_cpu.getRegisters().a);
+		m_cpu.getBus().lock()->write(0xFF00 | m_cpu.getFetchedData(), m_cpu.getRegisters()->a);
 	}
 
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);*/
 }
 
 void NopCommand::execute(cpu& m_cpu)
@@ -467,17 +565,17 @@ void NopCommand::execute(cpu& m_cpu)
 
 void OrCommand::execute(cpu& m_cpu)
 {
-	m_cpu.getRegisters().a |= m_cpu.getFetchedData() & 0xFF;
-	m_cpu.setFlags(m_cpu.getRegisters().a == 0, 0, 0, 0);
+	m_cpu.getRegisters()->a |= m_cpu.getFetchedData() & 0xFF;
+	m_cpu.setFlags(m_cpu.getRegisters()->a == 0, 0, 0, 0);
 }
 
 void PopCommand::execute(cpu& m_cpu)
 {
 	//using popStack instead of popStack16 to account for cycles
 	const uint16_t low = m_cpu.popStack();
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 	const uint16_t high = m_cpu.popStack();
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 	const uint16_t value = (high << 8) | low;
 
 	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
@@ -487,9 +585,9 @@ void PopSpecialCommand::execute(cpu& m_cpu)
 {
 	//using popStack instead of popStack16 to account for cycles
 	const uint16_t low = m_cpu.popStack();
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 	const uint16_t high = m_cpu.popStack();
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 	const uint16_t value = (high << 8) | low;
 	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value & 0xFFF0);
 }
@@ -497,34 +595,34 @@ void PopSpecialCommand::execute(cpu& m_cpu)
 void PushCommand::execute(cpu& m_cpu)
 {
 	const uint16_t high = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) >> 8 & 0xFF;
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 	m_cpu.pushStack(high);
 
 	const uint16_t low = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg2) & 0xFF;
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 	m_cpu.pushStack(low);
 
-	emulator::cycles(1);
+	m_cpu.getClock()->cycles(1);
 }
 
 void RetCommand::execute(cpu& m_cpu)
 {
 	if (m_cpu.getCurrentOpcodeData().cond != CT_NONE)
 	{
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 	}
 
 	if (m_cpu.checkConditionFlags())
 	{
 		//using popStack instead of popStack16 to account for cycles
 		const uint16_t low = m_cpu.popStack();
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 		const uint16_t high = m_cpu.popStack();
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 
 		const uint16_t value = (high << 8) | low;
-		m_cpu.getRegisters().pc = value;
-		emulator::cycles(1);
+		m_cpu.getRegisters()->pc = value;
+		m_cpu.getClock()->cycles(1);
 	}
 
 }
@@ -534,59 +632,59 @@ void RetiCommand::execute(cpu& m_cpu)
 	m_cpu.setMasterInterruptEnabled(true);
 	if (m_cpu.getCurrentOpcodeData().cond != CT_NONE)
 	{
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 	}
 
 	if (m_cpu.checkConditionFlags())
 	{
 		//using popStack instead of popStack16 to account for cycles
 		const uint16_t low = m_cpu.popStack();
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 		const uint16_t high = m_cpu.popStack();
-		emulator::cycles(1);
+		m_cpu.getClock()->cycles(1);
 
 		const uint16_t value = (high << 8) | low;
-		m_cpu.getRegisters().pc = value;
-		emulator::cycles(1);
+		m_cpu.getRegisters()->pc = value;
+		m_cpu.getClock()->cycles(1);
 	}
 }
 
 void RlaCommand::execute(cpu& m_cpu)
 {
-	const uint8_t u = m_cpu.getRegisters().a;
-	const uint8_t cf = utility::checkBit(m_cpu.getRegisters().f, 4);
+	const uint8_t u = m_cpu.getRegisters()->a;
+	const uint8_t cf = utility::checkBit(m_cpu.getRegisters()->f, 4);
 	const uint8_t c = (u >> 7) & 1;
 
-	m_cpu.getRegisters().a = (u << 1) | cf;
+	m_cpu.getRegisters()->a = (u << 1) | cf;
 	m_cpu.setFlags(0, 0, 0, c);
 }
 
 void RlcaCommand::execute(cpu& m_cpu)
 {
-	uint8_t u = m_cpu.getRegisters().a;
+	uint8_t u = m_cpu.getRegisters()->a;
 	const bool c = (u >> 7) & 1;
 	u = (u << 1) | static_cast<int>(c);
-	m_cpu.getRegisters().a = u;
+	m_cpu.getRegisters()->a = u;
 
 	m_cpu.setFlags(0, 0, 0, c);
 }
 
 void RraCommand::execute(cpu& m_cpu)
 {
-	const uint8_t carry = utility::checkBit(m_cpu.getRegisters().f, 4);
-	const uint8_t new_c = m_cpu.getRegisters().a & 1;
+	const uint8_t carry = utility::checkBit(m_cpu.getRegisters()->f, 4);
+	const uint8_t new_c = m_cpu.getRegisters()->a & 1;
 
-	m_cpu.getRegisters().a >>= 1;
-	m_cpu.getRegisters().a |= (carry << 7);
+	m_cpu.getRegisters()->a >>= 1;
+	m_cpu.getRegisters()->a |= (carry << 7);
 
 	m_cpu.setFlags( 0, 0, 0, new_c);
 }
 
 void RrcaCommand::execute(cpu& m_cpu)
 {
-	const uint8_t b = m_cpu.getRegisters().a & 1;
-	m_cpu.getRegisters().a >>= 1;
-	m_cpu.getRegisters().a |= (b << 7);
+	const uint8_t b = m_cpu.getRegisters()->a & 1;
+	m_cpu.getRegisters()->a >>= 1;
+	m_cpu.getRegisters()->a |= (b << 7);
 
 	m_cpu.setFlags( 0, 0, 0, b);
 }
@@ -595,24 +693,39 @@ void RstCommand::execute(cpu& m_cpu)
 {
 	if (m_cpu.checkConditionFlags())
 	{
-		emulator::cycles(2);
-		m_cpu.pushStack16(m_cpu.getRegisters().pc);
+		m_cpu.getClock()->cycles(2);
+		m_cpu.pushStack16(m_cpu.getRegisters()->pc);
 
-		m_cpu.getRegisters().pc = m_cpu.getCurrentOpcodeData().param;
-		emulator::cycles(1);
+		m_cpu.getRegisters()->pc = m_cpu.getCurrentOpcodeData().param;
+		m_cpu.getClock()->cycles(1);
 	}
 }
 
 void SbcCommand::execute(cpu& m_cpu)
 {
-	const uint16_t value = m_cpu.getFetchedData() + utility::checkBit(m_cpu.getRegisters().f, 4);
+	/*const uint16_t value = m_cpu.getFetchedData() + utility::checkBit(m_cpu.getRegisters()->f, 4);
 
 	const int16_t z = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - value == 0;
-	const int16_t h = static_cast<int16_t>(m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) & 0x0F) - static_cast<int16_t>(m_cpu.getFetchedData() & 0x0F) - static_cast<int>(utility::checkBit(m_cpu.getRegisters().f, 4)) < 0;
-	const int16_t c = static_cast<int16_t>(m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1)) - static_cast<int16_t>(m_cpu.getFetchedData()) - static_cast<int>(utility::checkBit(m_cpu.getRegisters().f, 4)) < 0;
+	const int16_t h = static_cast<int16_t>(m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) & 0x0F) - static_cast<int16_t>(m_cpu.getFetchedData() & 0x0F) - static_cast<int>(utility::checkBit(m_cpu.getRegisters()->f, 4)) < 0;
+	const int16_t c = static_cast<int16_t>(m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1)) - static_cast<int16_t>(m_cpu.getFetchedData()) - static_cast<int>(utility::checkBit(m_cpu.getRegisters()->f, 4)) < 0;
 
 	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
-	m_cpu.setFlags(z,1,h,c);
+	m_cpu.setFlags(z,1,h,c);*/
+
+	const uint8_t a  = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) & 0xFF;
+	const uint8_t u  = m_cpu.getFetchedData() & 0xFF;
+	const uint8_t cy = utility::checkBit(m_cpu.getRegisters()->f, 4);
+
+	const uint16_t sub = static_cast<uint16_t>(u) + static_cast<uint16_t>(cy);
+	const uint16_t res16 = static_cast<uint16_t>(a) - sub;
+	const uint8_t result = static_cast<uint8_t>(res16 & 0xFF);
+
+	const int z = (result == 0);
+	const int h = (a & 0x0F) < ((u & 0x0F) + cy);
+	const int c = a < sub;
+
+	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, result);
+	m_cpu.setFlags(z, 1, h, c);
 }
 
 void ScfCommand::execute(cpu& m_cpu)
@@ -627,20 +740,32 @@ void StopCommand::execute(cpu& m_cpu)
 
 void SubCommand::execute(cpu& m_cpu)
 {
-	const uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - m_cpu.getFetchedData();
+	/*const uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - m_cpu.getFetchedData();
 
 	const int16_t z = value == 0;
 	const int16_t h = static_cast<int16_t>(m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) & 0x0F) - static_cast<int16_t>(m_cpu.getFetchedData() & 0x0F) < 0;
 	const int16_t c = static_cast<int16_t>(m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1)) - static_cast<int16_t>(m_cpu.getFetchedData()) < 0;
 
 	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - value);
-	m_cpu.setFlags(z,1,h,c);
+	m_cpu.setFlags(z,1,h,c);*/
+
+	const uint8_t a = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) & 0xFF;
+	const uint8_t u = m_cpu.getFetchedData() & 0xFF;
+	const uint16_t res16 = static_cast<uint16_t>(a) - static_cast<uint16_t>(u);
+	const uint8_t result = static_cast<uint8_t>(res16 & 0xFF);
+
+	const int z = (result == 0);
+	const int h = (a & 0x0F) < (u & 0x0F);
+	const int c = a < u;
+
+	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, result);
+	m_cpu.setFlags(z, 1, h, c);
 }
 
 void XorCommand::execute(cpu& m_cpu)
 {
-	m_cpu.getRegisters().a ^= m_cpu.getFetchedData() & 0xFF;
-	m_cpu.setFlags(m_cpu.getRegisters().a == 0, 0, 0, 0);
+	m_cpu.getRegisters()->a ^= m_cpu.getFetchedData() & 0xFF;
+	m_cpu.setFlags(m_cpu.getRegisters()->a == 0, 0, 0, 0);
 }
 
 std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode& opcode)
@@ -661,7 +786,7 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
         	{
         		return std::make_unique<Ld16BitCommand>();
         	}
-			else if (opcode.mode == AM_HL_SPR)
+			if (opcode.reg1 == RT_HL && opcode.reg2 == RT_SP)
 			{
 				return std::make_unique<LdSpecialCommand>();
 			}
@@ -669,7 +794,7 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
         }
         case OP_INC:    // INC 8-bit: Increment 8-bit register
         {
-        	if (opcode.reg2 >= RT_AF)
+        	if (opcode.reg1 == RT_BC || opcode.reg1 == RT_DE || opcode.reg1 == RT_HL || opcode.reg1 == RT_SP)
         	{
         		return std::make_unique<Inc16BitCommand>();
         	}
@@ -677,7 +802,7 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
         }
         case OP_DEC:    // DEC 8-bit: Decrement 8-bit register
         {
-        	if (opcode.reg2 >= RT_AF)
+        	if (opcode.reg2 >= RT_AF/* || opcode.reg1 >= RT_AF*/)
         	{
         		return std::make_unique<Dec16BitCommand>();
         	}
@@ -806,6 +931,10 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
     	case OP_RRA:
         {
         	return std::make_unique<RraCommand>();
+        }
+    	case OP_RRCA:
+        {
+	        return std::make_unique<RrcaCommand>();
         }
         //case OP_ADDSP:   // ADD SP, e: Add signed immediate to SP
             //return std::make_unique<AddSPCommand>();

@@ -6,65 +6,56 @@
 #define GAMEBOYEMULATOR_CPU_H
 #include "../base/component.h"
 #include "opcodes.h"
+#include "../emulatorClock.h"
+
 
 class bus;
 
 struct registers
 {
-	struct
-	{
-		union
-		{
-			struct
-			{
-				uint8_t f;
-				uint8_t a;
-			};
 
-			uint16_t af;
+	union
+	{
+		struct
+		{
+			uint8_t f;
+			uint8_t a;
 		};
+
+		uint16_t af;
 	};
 
-	struct
+	union
 	{
-		union
+		struct
 		{
-			struct
-			{
-				uint8_t c;
-				uint8_t b;
-			};
-
-			uint16_t bc;
+			uint8_t c;
+			uint8_t b;
 		};
+
+		uint16_t bc;
 	};
 
-	struct
+	union
 	{
-		union
+		struct
 		{
-			struct
-			{
-				uint8_t e;
-				uint8_t d;
-			};
-
-			uint16_t de;
+			uint8_t e;
+			uint8_t d;
 		};
+
+		uint16_t de;
 	};
 
-	struct
+	union
 	{
-		union
+		struct
 		{
-			struct
-			{
-				uint8_t l;
-				uint8_t h;
-			};
-
-			uint16_t hl;
+			uint8_t l;
+			uint8_t h;
 		};
+
+		uint16_t hl;
 	};
 
 	uint16_t sp;
@@ -91,8 +82,8 @@ enum interruptTypes
 class cpu
 {
 public:
-	cpu(const std::shared_ptr<bus>& bus)
-		: m_bus(bus) {};
+	cpu(const std::shared_ptr<memorycomponentMessanger>& bus, const std::shared_ptr<emulatorClock>& clock)
+		: m_bus(bus), m_clock(clock) {};
 
 	void init();
 
@@ -115,19 +106,20 @@ public:
 
 	bool interruptCheck(uint16_t address, interruptTypes type);
 
+	void requestInterrupt(interruptTypes type);
 
 	// flag functions
 	bool checkConditionFlags();
 
-	void setFlags(uint8_t z, uint8_t n, uint8_t h, uint8_t c);
+	void setFlags(int8_t z, int8_t n, int8_t h, int8_t c);
 
-	void setZeroFlag(uint8_t z);
+	void setZeroFlag(int8_t z);
 
-	void setSubtractFlag(uint8_t n);
+	void setSubtractFlag(int8_t n);
 
-	void setHalfCarryFlag(uint8_t h);
+	void setHalfCarryFlag(int8_t h);
 
-	void setCarryFlag(uint8_t c);
+	void setCarryFlag(int8_t c);
 
 	bool isZeroFlagSet() const;
 
@@ -138,12 +130,13 @@ public:
 	bool isCarryFlagSet() const;
 
 
-
 	// stack functions
 	void pushStack(const uint8_t value);
+
 	uint8_t popStack();
 
 	void pushStack16(const uint16_t value);
+
 	uint16_t popStack16();
 
 	//getter and setters functions
@@ -164,15 +157,18 @@ public:
 	uint16_t getMemoryDestination() const { return memoryDestination; }
 	inline void setMemoryDestination(const uint16_t value) { memoryDestination = value; }
 
-	std::weak_ptr<bus> getBus() const { return m_bus; }
+	std::weak_ptr<memorycomponentMessanger> getBus() const { return m_bus; }
+
+	std::shared_ptr<emulatorClock> getClock() const { return m_clock; }
 
 	registers getRegistersDebug() const { return registers; }
-	registers& getRegisters() { return registers; }
+	registers* getRegisters() { return &registers; }
 
 	uint16_t getPC() const { return registers.pc; }
 	uint16_t getSP() const { return registers.sp; }
 
 	uint8_t getCurrentOpcode() const { return currentOpcode; }
+
 	opcode getCurrentOpcodeData() const;
 
 	void setSteppingMode(const bool value) { steppingMode = value; }
@@ -192,8 +188,13 @@ public:
 
 	// utility functions
 	static uint16_t reverse(const uint16_t number) { return ((number & 0xFF00) >> 8) | ((number & 0x00FF) << 8); }
+
+	// test functions
+	void execSingleInstructionWithOpcode(uint8_t opcode);
+	void execSingleInstruction();
 private:
-	std::shared_ptr<bus> m_bus;
+	std::shared_ptr<memorycomponentMessanger> m_bus;
+	std::shared_ptr<emulatorClock> m_clock;
 	std::vector<opcode> opcodesHistory;
 	bool steppingMode = false;
 	bool stepComplete = false;
@@ -208,10 +209,6 @@ private:
 	uint8_t interruptEnableRegister;
 	bool enablingIME;
 	uint8_t interruptFlags;
-
-public:
-
-private:
 };
 
 #endif //GAMEBOYEMULATOR_CPU_H
