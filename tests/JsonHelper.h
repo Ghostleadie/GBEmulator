@@ -20,14 +20,14 @@ struct CPUTestCase {
 	struct {
 		uint8_t a, b, c, d, e, f, h, l;
 		uint16_t pc, sp;
-		std::vector<std::vector<uint16_t>> ram; // [address, value] pairs
+		std::unordered_map<uint16_t, uint16_t> ram; // [address, value] pairs
 	} initial;
 
 	// Final state
 	struct {
 		uint8_t a, b, c, d, e, f, h, l;
 		uint16_t pc, sp;
-		std::vector<std::vector<uint16_t>> ram; // [address, value] pairs
+		std::unordered_map<uint16_t, uint16_t> ram; // [address, value] pairs
 	} final;
 
 	std::vector<std::vector<std::string>> cycles; // For cycle-accurate testing
@@ -64,7 +64,7 @@ public:
             testCase.initial.sp = initial["sp"];
 
             for (const auto& ram : initial["ram"]) {
-                testCase.initial.ram.emplace_back(ram[0], ram[1]);
+            	testCase.initial.ram[ram[0]] = ram[1];
             }
 
             // Load final state
@@ -81,7 +81,7 @@ public:
             testCase.final.sp = final["sp"];
 
             for (const auto& ram : final["ram"]) {
-                testCase.final.ram.emplace_back(ram[0], ram[1]);
+            	testCase.final.ram[ram[0]] = ram[1];
             }
 
             // Load cycles

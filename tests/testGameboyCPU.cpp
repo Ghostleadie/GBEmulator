@@ -39,17 +39,10 @@ TEST_P(GameboyCPUParameterizedTest, ExecuteInstruction) {
 
     // Set initial memory state
 	for (const auto& ramEntry : testCase.initial.ram) {
-		uint16_t address = ramEntry[0];
-		uint8_t value = ramEntry[1];
+		uint16_t address = ramEntry.first;
+		uint8_t value = ramEntry.second;
 		gb.getBus().lock()->write(address, value);
 	}
-
-	// Add debug output before execution
-	uint16_t pc = gb.getRegisters()->pc;
-	uint8_t opcodeAtPC = gb.getBus().lock()->read(pc);
-	std::cerr << std::hex << "Test: " << testCase.name
-			  << " PC: 0x" << pc
-			  << " opcode at PC: 0x" << (int)opcodeAtPC << std::endl;
 
 	gb.execSingleInstruction();
 
@@ -67,8 +60,8 @@ TEST_P(GameboyCPUParameterizedTest, ExecuteInstruction) {
 
     // Verify final memory state
 	for (const auto& ramEntry : testCase.final.ram) {
-		uint16_t address = ramEntry[0];
-		uint8_t expectedValue = ramEntry[1];
+		uint16_t address = ramEntry.first;
+		uint8_t expectedValue = ramEntry.second;
 		ASSERT_EQ(MEM->read(address), expectedValue)
 			<< "Memory mismatch at address 0x" << std::hex << address
 			<< " in test: " << testCase.name;
@@ -96,12 +89,9 @@ std::vector<std::pair<std::string, CPUTestCase>> generateTestCases() {
             		const auto& test = tests[i];
 
             		// Create a valid test name by replacing invalid characters
-            		std::string testName = test.name;
-            		std::replace_if(testName.begin(), testName.end(),
+            		std::string fullTestName = filename + "_" + std::to_string(i) + "_" + test.name;
+            		std::replace_if(fullTestName.begin(), fullTestName.end(),
 						[](char c) { return !std::isalnum(c) && c != '_'; }, '_');
-
-            		// Combine filename and test name with index for uniqueness
-            		std::string fullTestName = filename + "_" + std::to_string(i) + "_" + testName;
 
             		testCases.emplace_back(fullTestName, test);
             	}
