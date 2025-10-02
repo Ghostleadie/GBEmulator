@@ -230,7 +230,7 @@ void cpu::fetchData()
 			fetchedData = m_bus->read(registers.pc);
 			getClock()->cycles(1);
 			registers.pc++;
-			memoryDestination = readRegister(currentOpcodeData.reg2);
+			memoryDestination = readRegister(currentOpcodeData.reg1);
 			destinationIsMemory = true;
 			break;
 		}
@@ -524,27 +524,6 @@ opcode cpu::getCurrentOpcodeData() const
 	return currentOpcodeData;
 }
 
-void cpu::execSingleInstructionWithOpcode(uint8_t opcode)
-{
-	currentOpcode = opcode;
-	currentOpcodeData = getOpcode(currentOpcode);
-	fetchData();
-	if (currentOpcodeData.execute != nullptr)
-	{
-		currentOpcodeData.execute(*this);
-	}
-}
-
-void cpu::execSingleInstruction()
-{
-	fetchOpcode();
-	fetchData();
-	if (currentOpcodeData.execute != nullptr)
-	{
-		currentOpcodeData.execute(*this);
-	}
-}
-
 bool cpu::checkConditionFlags()
 {
 	const bool z = utility::checkBit(registers.f, 7);
@@ -663,4 +642,27 @@ bool cpu::isHalfCarryFlagSet() const {
 // Returns true if the Carry flag is set
 bool cpu::isCarryFlagSet() const {
 	return utility::checkBit(registers.f, 4);
+}
+
+//for unit testing only
+
+void cpu::execSingleInstructionWithOpcode(uint8_t opcode)
+{
+	currentOpcode = opcode;
+	currentOpcodeData = getOpcode(currentOpcode);
+	fetchData();
+	if (currentOpcodeData.execute != nullptr)
+	{
+		currentOpcodeData.execute(*this);
+	}
+}
+
+void cpu::execSingleInstruction()
+{
+	fetchOpcode();
+	fetchData();
+	if (currentOpcodeData.execute != nullptr)
+	{
+		currentOpcodeData.execute(*this);
+	}
 }

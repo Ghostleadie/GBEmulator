@@ -3,6 +3,9 @@
 //
 
 #include "opcodeFunctions.h"
+
+#include <iostream>
+
 #include "cpu.h"
 #include "../../emulator.h"
 #include "../../components/bus.h"
@@ -29,10 +32,10 @@ void Add8BitCommand::execute(cpu& m_cpu)
 	const uint16_t result = reg1Val + fetchedVal;
 
 	const int z = (result & 0xFF) == 0;
-	const int h = (reg1Val & 0xF) + (fetchedVal & 0xF) >= 0x10;
+	const int h = (reg1Val & 0x0F) + (fetchedVal & 0x0F) > 0x0F;
 	const int c = result > 0xFF;
 
-	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, result & 0xFFFF);
+	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, result & 0xFF);
 	m_cpu.setFlags(z, 0, h, c);
 }
 
@@ -44,8 +47,9 @@ void Add16BitCommand::execute(cpu& m_cpu)
 
 	m_cpu.getClock()->cycles(1);
 
-	const int h = (reg1Val & 0xFFF) + (fetchedVal & 0xFFF) >= 0x1000;
-	const int c = result >= 0x10000;
+	const int h = (reg1Val & 0x0FFF) + (fetchedVal & 0x0FFF) >= 0x1000;
+	const uint32_t n = static_cast<uint32_t>(reg1Val) + static_cast<uint32_t>(fetchedVal);
+	const int c = n >= 0x10000;
 
 	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, result & 0xFFFF);
 	m_cpu.setFlags(-1, 0, h, c);
@@ -57,7 +61,7 @@ void AddSPCommand::execute(cpu& m_cpu)
 	const int8_t offset = static_cast<int8_t>(m_cpu.getFetchedData() & 0xFF);
 	const uint16_t result = sp + offset;
 
-	const int h = (sp & 0xF) + (offset & 0xF) >= 0x10;
+	const int h = (sp & 0xF) + (offset & 0xF) > 0x0F;
 	const int c = (sp & 0xFF) + (offset & 0xFF) > 0xFF;
 
 	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, result & 0xFFFF);
@@ -405,49 +409,40 @@ void Inc8BitCommand::execute(cpu& m_cpu)
 {
 	uint16_t oldValue, value;
 
-	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR)
-	{
-		// Memory-mapped case
-		oldValue = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
-		value = (oldValue + 1) & 0xFF;
-		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
-	}
-	else
-	{
 		// Regular register case
 		oldValue = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
 		value = (oldValue + 1) & 0xFF;
 		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
-	}
 
 	if ((m_cpu.getCurrentOpcode() & 0x03) == 0x03) {
 		return;
 	}
 
 	int h = ((oldValue & 0x0F) + 1) > 0x0F;
-	// Set flags for all INC 8-bit operations except INC 16-bit (which have different opcodes)
 	m_cpu.setFlags(value == 0, 0, h, -1);
 }
 
 void Inc16BitCommand::execute(cpu& m_cpu)
 {
-	uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) + 1;
-	m_cpu.getClock()->cycles(1);
-
-	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
-		value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL)) + 1;
-		value &= 0xFF;
+	uint16_t oldValue, value;
+	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR)
+	{
+		// Memory-mapped case
+		oldValue = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
+		value = (oldValue + 1) & 0xFF;
 		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
-	} else {
-		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
-		//value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
-	}
 
-	if ((m_cpu.getCurrentOpcode() & 0x03) == 0x03) {
+		int h = ((oldValue & 0x0F) + 1) > 0x0F;
+		m_cpu.setFlags(value == 0, 0, h, -1);
 		return;
 	}
+	else
+	{
+		value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) + 1;
+		m_cpu.getClock()->cycles(1);
 
-	//m_cpu.setFlags(value == 0, 0, (value & 0x0F) == 0, -1);
+		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
+	}
 }
 
 void JpCommand::execute(cpu& m_cpu)
@@ -461,7 +456,8 @@ void JpCommand::execute(cpu& m_cpu)
 
 void JphlCommand::execute(cpu& m_cpu)
 {
-	LOG_WARN("not implemented");
+	m_cpu.getRegisters()->pc = m_cpu.readRegister(RT_HL);
+	m_cpu.getClock()->cycles(1);
 }
 
 void JrCommand::execute(cpu& m_cpu)
@@ -514,12 +510,13 @@ void Ld16BitCommand::execute(cpu& m_cpu)
 
 void LdSpecialCommand::execute(cpu& m_cpu)
 {
-	const auto offset = static_cast<int8_t>(m_cpu.getFetchedData() & 0xFF);
+	const int8_t offset = static_cast<int8_t>(m_cpu.getFetchedData() & 0xFF);
 	const uint16_t sp = m_cpu.readRegister(RT_SP);
-	const auto result = static_cast<uint16_t>(sp + offset);
+	const uint16_t result = static_cast<uint16_t>(sp + offset);
 
-	const int h = ((sp & 0xF) + (offset & 0xF)) >= 0x10;
-	const int c = ((sp & 0xFF) + (offset & 0xFF)) >= 0x100;
+	const uint8_t offset_u8 = static_cast<uint8_t>(offset);
+	const int h = ((sp & 0xF) + (offset_u8 & 0x0F)) > 0x0F;
+	const int c = ((sp & 0xFF) + (offset_u8 & 0xFF)) > 0xFF;
 
 	m_cpu.writeRegister(RT_HL, result);
 	m_cpu.setFlags(0, 0, h, c);
@@ -528,34 +525,33 @@ void LdSpecialCommand::execute(cpu& m_cpu)
 
 void LdhCommand::execute(cpu& m_cpu)
 {
-	// Support both LDH (a8),A / LDH A,(a8) and LD (FF00+C),A / LD A,(FF00+C)
-	const bool usesC = (m_cpu.getCurrentOpcodeData().reg1 == RT_C) ||
-					   (m_cpu.getCurrentOpcodeData().reg2 == RT_C);
-	const uint16_t offset = usesC
-		? (m_cpu.readRegister(RT_C) & 0xFFu)
-		: (m_cpu.getFetchedData() & 0xFFu);
-	const uint16_t addr = static_cast<uint16_t>(0xFF00u + offset);
+	/*// Support both LDH (a8),A / LDH A,(a8) and LD (FF00+C),A / LD A,(FF00+C)
+	const bool usesC = (m_cpu.getCurrentOpcodeData().reg1 == RT_C) || (m_cpu.getCurrentOpcodeData().reg2 == RT_C);
+	const uint16_t offset = usesC ? (m_cpu.readRegister(RT_C) & 0xFF) : (m_cpu.getFetchedData() & 0xFF);
+	const uint16_t addr = static_cast<uint16_t>(0xFF00 + offset);
 
-	if (m_cpu.getCurrentOpcodeData().reg1 == RT_A) {
-		// LD A,(FF00+n) or LD A,(FF00+C)
-		const uint8_t v = m_cpu.getBus().lock()->read(addr) & 0xFFu;
+	// For 0xE0: LDH (a8),A - store A to memory
+	// For 0xF0: LDH A,(a8) - load from memory to A
+	if (m_cpu.getCurrentOpcode() == 0xF0) {
+		// Load from memory to A
+		const uint8_t v = m_cpu.getBus().lock()->read(addr);
 		m_cpu.writeRegister(RT_A, v);
-	} else {
-		// LD (FF00+n),A or LD (FF00+C),A
-		m_cpu.getBus().lock()->write(addr, m_cpu.getRegisters()->a & 0xFFu);
-	}
-
-	m_cpu.getClock()->cycles(1);
-	/*if (m_cpu.getCurrentOpcodeData().reg1 == RT_A)
-	{
-		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, m_cpu.getBus().lock()->read(0xFF00 + m_cpu.getFetchedData() ));
 	}
 	else
 	{
-		m_cpu.getBus().lock()->write(0xFF00 | m_cpu.getFetchedData(), m_cpu.getRegisters()->a);
+		// Store A to memory
+		m_cpu.getBus().lock()->write(addr, m_cpu.getRegisters()->a);
+	}*/
+
+	if (m_cpu.getCurrentOpcodeData().reg1 == RT_A) {
+		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, m_cpu.getBus().lock()->read(0xFF00 | m_cpu.getFetchedData()));
+	} else {
+		m_cpu.getBus().lock()->write(m_cpu.getMemoryDestination(), m_cpu.getRegisters()->a);
 	}
 
-	m_cpu.getClock()->cycles(1);*/
+
+	m_cpu.getClock()->cycles(1);
+
 }
 
 void NopCommand::execute(cpu& m_cpu)
@@ -598,7 +594,7 @@ void PushCommand::execute(cpu& m_cpu)
 	m_cpu.getClock()->cycles(1);
 	m_cpu.pushStack(high);
 
-	const uint16_t low = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg2) & 0xFF;
+	const uint16_t low = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) & 0xFF;
 	m_cpu.getClock()->cycles(1);
 	m_cpu.pushStack(low);
 
@@ -735,7 +731,12 @@ void ScfCommand::execute(cpu& m_cpu)
 
 void StopCommand::execute(cpu& m_cpu)
 {
-	LOG_WARN("Stopping!");
+	// Read and discard the next byte (part of STOP instruction format)
+	m_cpu.getBus().lock()->read(m_cpu.getRegisters()->pc);
+	m_cpu.getRegisters()->pc++;
+
+	// Set CPU to stopped state (you may need to add this method to cpu class)
+	m_cpu.setHalted(true);
 }
 
 void SubCommand::execute(cpu& m_cpu)
@@ -782,19 +783,19 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
         }
     	case OP_LD:     // LD 8-bit: Load 8-bit value
         {
+        	if (opcode.reg1 == RT_HL && opcode.reg2 == RT_SP)
+        	{
+        		return std::make_unique<LdSpecialCommand>();
+        	}
         	if (opcode.reg2 >= RT_AF)
         	{
         		return std::make_unique<Ld16BitCommand>();
         	}
-			if (opcode.reg1 == RT_HL && opcode.reg2 == RT_SP)
-			{
-				return std::make_unique<LdSpecialCommand>();
-			}
 	        return std::make_unique<Ld8BitCommand>();
         }
         case OP_INC:    // INC 8-bit: Increment 8-bit register
         {
-        	if (opcode.reg1 == RT_BC || opcode.reg1 == RT_DE || opcode.reg1 == RT_HL || opcode.reg1 == RT_SP)
+        	if ((opcode.reg1 == RT_BC || opcode.reg1 == RT_DE || opcode.reg1 == RT_HL || opcode.reg1 == RT_SP))
         	{
         		return std::make_unique<Inc16BitCommand>();
         	}
@@ -814,7 +815,8 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
 	        {
 	        	return std::make_unique<AddSPCommand>();
 	        }
-        	if (opcode.reg2 >= RT_AF)
+        	// Only use 16-bit ADD when reg1 is HL and we're adding 16-bit registers
+        	if (opcode.reg1 == RT_HL && (opcode.reg2 == RT_BC || opcode.reg2 == RT_DE || opcode.reg2 == RT_HL || opcode.reg2 == RT_SP))
         	{
         		return std::make_unique<Add16BitCommand>();
         	}
@@ -935,6 +937,14 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
     	case OP_RRCA:
         {
 	        return std::make_unique<RrcaCommand>();
+        }
+    	case OP_RLCA:
+        {
+	        return std::make_unique<RlcaCommand>();
+		}
+    	case OP_RLA:
+        {
+	        return std::make_unique<RlaCommand>();
         }
         //case OP_ADDSP:   // ADD SP, e: Add signed immediate to SP
             //return std::make_unique<AddSPCommand>();

@@ -6,14 +6,15 @@
 #define GAMEBOYEMULATOR_TIMER_H
 #include "base/component.h"
 
+class cpu;
+
 class timer : public memoryComponent
 {
 public:
 	timer() = default;
 	~timer() override = default;
 
-private:
-	void init();
+	void init(std::shared_ptr<cpu> cpuPt);
 	void tick();
 
 	// Read a byte from a device-local address (offset from base).
@@ -21,6 +22,14 @@ private:
 
 	// Write a byte to a device-local address (offset from base).
 	void write(uint16_t address, uint8_t value);
+
+private:
+	uint16_t div;
+	uint8_t tima;
+	uint8_t tma;
+	uint8_t tac;
+
+	std::weak_ptr<cpu> m_cpu;
 };
 
 

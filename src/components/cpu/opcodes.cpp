@@ -265,7 +265,7 @@
 	    {0xE6, {"AND", OP_AND, AM_R_D8, RT_A}},
 	    {0xE7, {"RST", OP_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x20}},
 	    {0xE8, {"ADD", OP_ADD, AM_R_D8, RT_SP}},
-	    {0xE9, {"JP", OP_JP, AM_IMP}},
+	    {0xE9, {"JPHL", OP_JPHL, AM_R}},
 	    {0xEA, {"LD", OP_LD, AM_A16_R, RT_NONE, RT_A}},
 	    {0xEE, {"XOR", OP_XOR, AM_R_D8, RT_A}},
 	    {0xEF, {"RST", OP_RST, AM_IMP, RT_NONE, RT_NONE, CT_NONE, 0x28}},

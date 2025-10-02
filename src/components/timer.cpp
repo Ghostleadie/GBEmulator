@@ -4,12 +4,118 @@
 
 #include "timer.h"
 
+#include "cpu/cpu.h"
+
+void timer::init(std::shared_ptr<cpu> cpuPt)
+{
+	div = 0xAC00;
+	m_cpu = cpuPt;
+}
+
+void timer::tick()
+{
+	uint16_t oldDiv = div;
+
+	div++;
+
+	bool update = false;
+
+	switch (tac & 0b11)
+	{
+		case 0b00:
+		{
+			update = ((oldDiv & (1 << 9)) && !(div & (1 << 9)));
+			break;
+		}
+		case 0b01:
+		{
+			update = ((oldDiv & (1 << 3)) && !(div & (1 << 3)));
+			break;
+		}
+		case 0b10:
+		{
+			update = ((oldDiv & (1 << 5)) && !(div & (1 << 5)));
+			break;
+		}
+		case 0b11:
+		{
+			update = ((oldDiv & (1 << 7)) && !(div & (1 << 7)));
+			break;
+		}
+	}
+
+	if (update && (tac & (1 << 2)))
+	{
+		tima++;
+		if (tima == 0xFF)
+		{
+			tima = tma;
+
+			m_cpu.lock()->requestInterrupt(INT_TIMER);
+		}
+		else
+		{
+			tima++;
+		}
+	}
+}
+
 uint8_t timer::read(uint16_t address)
 {
-	return 0;
+	switch(address) {
+		case 0xFF04:
+		{
+			return div >> 8;
+		}
+		case 0xFF05:
+		{
+			return tima;
+		}
+		case 0xFF06:
+		{
+			return tma;
+		}
+		case 0xFF07:
+		{
+			return tac;
+		}
+	}
 }
 
 void timer::write(uint16_t address, uint8_t value)
 {
+	switch(address)
+	{
+		case 0xFF04:
+		{
+			//DIV
+			div = 0;
+			break;
+		}
 
+		case 0xFF05:
+		{
+			//TIMA
+			tima = value;
+			break;
+		}
+
+		case 0xFF06:
+		{
+			//TMA
+			tma = value;
+			break;
+		}
+
+		case 0xFF07:
+		{
+			//TAC
+			tac = value;
+			break;
+		}
+		default:
+		{
+			LOG_ERROR("Unrecognised timer write at address: {:04X}", address);
+		}
+	}
 }
