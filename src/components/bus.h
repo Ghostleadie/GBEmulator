@@ -18,7 +18,6 @@ class bus :   public memorycomponentMessanger
 public:
 	bus()= default;
 	void connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer, const std::shared_ptr<cpu>& cpu);
-	void notify(const std::string& event, std::shared_ptr<memoryComponent> sender) override;
 
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t value) override;

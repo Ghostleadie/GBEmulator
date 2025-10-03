@@ -5,6 +5,7 @@
 #include "bus.h"
 #include "../Utility/utility.h"
 #include "cartridgeLoader.h"
+#include "timer.h"
 #include "cpu/cpu.h"
 
 void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer, const std::shared_ptr<cpu>& cpu)
@@ -14,11 +15,6 @@ void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, cons
 	m_ppu = ppu;
 	m_timer = timer;
 	m_cpu = cpu;
-}
-
-void bus::notify(const std::string& event, std::shared_ptr<memoryComponent> sender)
-{
-
 }
 
 uint8_t bus::read(uint16_t address)
@@ -105,35 +101,7 @@ uint8_t bus::read(uint16_t address)
 
 void bus::write(uint16_t address, const uint8_t value)
 {
-	if (address < 0xFF00 && address > 0xFFFF)
-	{
-		LOG_WARN("serial register write attempted");
-	}
-
-	// In your bus::write() method, add this before the actual write:
-	if (address == 0xFF01) {
-		LOG_INFO("SERIAL DATA WRITE: address=0xFF01, value=0x{:02X} ('{}')",
-				 value, (value >= 32 && value <= 126) ? static_cast<char>(value) : '?');
-	}
-	if (address == 0xFF02) {
-		LOG_INFO("SERIAL CONTROL WRITE: address=0xFF02, value=0x{:02X}, transfer_start={}",
-				 value, (value & 0x80) ? "YES" : "NO");
-
-		// If bit 7 is set, output the character from 0xFF01
-		if (value & 0x80) {
-			uint8_t serialData = read(0xFF01);
-			LOG_INFO("SERIAL OUTPUT: '{}'",
-					 (serialData >= 32 && serialData <= 126) ? static_cast<char>(serialData) : '?');
-
-			// Clear bit 7 after transfer (hardware behavior)
-			write(0xFF02, value & 0x7F);
-
-			// Set serial interrupt flag if enabled
-			m_cpu.lock()->setInterruptFlags(INT_SERIAL);
-		}
-	}
-
-	LOG_INFO("Bus Write: 0x{:02X} to address 0x{:04X}", value, address);
+	//LOG_INFO("Bus Write: 0x{:02X} to address 0x{:04X}", value, address);
 	if (address < 0x8000)
 	{
 		//ROM Data
@@ -238,11 +206,29 @@ uint8_t bus::readIO(uint16_t address)
 	{
 		return serialData[1];
 	}
+
+	if (utility::inRange(address, 0xFF04, 0xFF07))
+	{
+		return m_timer->read(address);
+	}
+
+	if (address == 0xFF0F)
+	{
+		return m_cpu.lock()->getInterruptFlags();
+	}
+	if (address == 0xFF44)
+	{
+		return 0x90;
+	}
 	LOG_WARN("Trying to read from IO address other than 0xFF01 & 0xFF02: {}", address);
 }
 
 void bus::writeIO(uint16_t address, uint8_t value)
 {
+	if(address == 0xFF00)
+	{
+		LOG_INFO("joypad write: 0x{:02X}", value);
+	}
 	if (address == 0xFF01)
 	{
 		serialData[0] = value;
@@ -271,6 +257,18 @@ void bus::writeIO(uint16_t address, uint8_t value)
 		if (value == 0x81) {
 			LOG_WARN("Serial transfer initiated!");
 		}
+		return;
+	}
+
+	if (utility::inRange(address, 0xFF04, 0xFF07))
+	{
+		m_timer->write(address, value);
+		return;
+	}
+
+	if (address == 0xFF0F)
+	{
+		m_cpu.lock()->setInterruptFlags(value);
 		return;
 	}
 }
