@@ -205,7 +205,7 @@ void CbCommand::execute(cpu& m_cpu)
 			LOG_ERROR("Invalid CB Opcode");
 		};*/
 
-		const extendedCBOpcode cbOp = getCBOpcode((m_cpu.getFetchedData() >> 6) & 0b11);
+		const extendedCBOpcode cbOp = getCBOpcode(m_cpu.getFetchedData());
 
 		// Load the operand properly (register or (HL))
 		uint8_t value;
