@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+#include <thread>
+#include <atomic>
 
 
 #include "components/emulatorClock.h"
@@ -36,12 +38,16 @@ public:
 	void initalizeEmulator();
 	void runEmulator();
 
+	void startEmulation();
+	void stopEmulation();
+
 	const std::shared_ptr<cpu>& getCPU() const { return m_cpu; }
 	const std::shared_ptr<cartridgeLoader>& getCartridge() const { return m_cartridge; }
 	const std::shared_ptr<bus>& getBus() const { return m_bus; }
 	const std::shared_ptr<joypad>& getJoypad() const { return m_joypad; }
 	const std::shared_ptr<ppu>& getPPU() const { return m_ppu; }
 	const std::shared_ptr<timer>& getTimer() const { return m_timer;}
+	const std::shared_ptr<emulatorClock>& getClock() const { return m_clock;}
 
 	//std::thread emuThread;
 	//std::atomic<bool> running{false};
@@ -64,6 +70,10 @@ private:
 
 	std::unique_ptr<mainMenu> m_menu;
 	std::unique_ptr<debugUI> m_debugUI;
+
+	std::thread m_emulationThread;
+	std::atomic<bool> m_running{false};
+	std::atomic<bool> m_shouldStop{false};
 };
 
 

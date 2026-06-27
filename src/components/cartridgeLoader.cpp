@@ -5,6 +5,7 @@
 #include "cartridgeLoader.h"
 
 #include <fstream>
+#include <cstdio>
 
 bool cartridgeLoader::loadCartridge(const std::string cartridgePath)
 {
@@ -16,6 +17,8 @@ bool cartridgeLoader::loadCartridge(const std::string cartridgePath)
 		LOG_WARN("Failed to open: {}", cartridgePath);
 		return false;
 	}
+
+	std::snprintf(ctx.filename, sizeof(ctx.filename), "%s", cartridgePath.c_str());
 
 	cartridgeFile.seekg(0, std::ifstream::end);
 	ctx.romSize = static_cast<unsigned long>(cartridgeFile.tellg());

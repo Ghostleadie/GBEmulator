@@ -6,6 +6,8 @@
 #define GAMEBOYEMULATOR_COMPONENT_H
 #include "componentMessanger.h"
 #include "../../interfaces/IDebugObserver.h"
+#include <vector>
+#include <string>
 
 class memoryComponent
 {

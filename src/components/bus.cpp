@@ -7,6 +7,7 @@
 #include "cartridgeLoader.h"
 #include "timer.h"
 #include "cpu/cpu.h"
+#include <cstring>
 
 void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer, const std::shared_ptr<cpu>& cpu)
 {
@@ -100,39 +101,57 @@ uint8_t bus::read(uint16_t address)
 void bus::write(uint16_t address, const uint8_t value)
 {
 
-if (m_serialLogging && address == 0xFF01) // Serial data register (logging only)
+if (address == 0xFF01) // Serial data register
     {
-        char c = static_cast<char>(value);
-        m_serialBuffer += c;
+        const char c = static_cast<char>(value);
 
-        if (c == '\n')
+        // Always record the serial stream so the debug panel can show the full
+        // output. This is passive (it never touches 0xFF02), so it doesn't race
+        // with the CPU's serial-transfer handling the way the old panel did.
+        if (m_serialOutputLen >= static_cast<int>(sizeof(m_serialOutput)) - 1)
         {
-            LOG_INFO("Serial: {}", m_serialBuffer);
+            // Buffer full: keep the most recent half.
+            const int keep = static_cast<int>(sizeof(m_serialOutput)) / 2;
+            memmove(m_serialOutput, m_serialOutput + (m_serialOutputLen - keep), keep);
+            m_serialOutputLen = keep;
+        }
+        m_serialOutput[m_serialOutputLen++] = c;
+        m_serialOutput[m_serialOutputLen] = '\0';
 
-            // Check for failure
-            if (m_serialBuffer.find("Failed") != std::string::npos)
+        // Optional bus-side per-line logging + Failed-detection trap (off by default).
+        if (m_serialLogging)
+        {
+            m_serialBuffer += c;
+
+            if (c == '\n')
             {
-                LOG_ERROR("═══════════════════════════════════════");
-                LOG_ERROR("TEST FAILED DETECTED");
-                LOG_ERROR("Serial: {}", m_serialBuffer);
-                LOG_ERROR("PC: 0x{:04X}", m_cpu.lock()->getRegisters()->pc);
-                LOG_ERROR("Last opcode: 0x{:02X}", m_cpu.lock()->getCurrentOpcode());
-                LOG_ERROR("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X}",
-                          m_cpu.lock()->getRegisters()->a, m_cpu.lock()->getRegisters()->f,
-                          m_cpu.lock()->getRegisters()->b, m_cpu.lock()->getRegisters()->c,
-                          m_cpu.lock()->getRegisters()->d, m_cpu.lock()->getRegisters()->e,
-                          m_cpu.lock()->getRegisters()->h, m_cpu.lock()->getRegisters()->l);
-                LOG_ERROR("SP:{:04X}", m_cpu.lock()->getRegisters()->sp);
-                LOG_ERROR("═══════════════════════════════════════");
+                LOG_INFO("Serial: {}", m_serialBuffer);
 
-                #if defined(_MSC_VER)
-                __debugbreak();
-                #else
-                __builtin_trap();
-                #endif
+                // Check for failure
+                if (m_serialBuffer.find("Failed") != std::string::npos)
+                {
+                    LOG_ERROR("═══════════════════════════════════════");
+                    LOG_ERROR("TEST FAILED DETECTED");
+                    LOG_ERROR("Serial: {}", m_serialBuffer);
+                    LOG_ERROR("PC: 0x{:04X}", m_cpu.lock()->getRegisters()->pc);
+                    LOG_ERROR("Last opcode: 0x{:02X}", m_cpu.lock()->getCurrentOpcode());
+                    LOG_ERROR("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X}",
+                              m_cpu.lock()->getRegisters()->a, m_cpu.lock()->getRegisters()->f,
+                              m_cpu.lock()->getRegisters()->b, m_cpu.lock()->getRegisters()->c,
+                              m_cpu.lock()->getRegisters()->d, m_cpu.lock()->getRegisters()->e,
+                              m_cpu.lock()->getRegisters()->h, m_cpu.lock()->getRegisters()->l);
+                    LOG_ERROR("SP:{:04X}", m_cpu.lock()->getRegisters()->sp);
+                    LOG_ERROR("═══════════════════════════════════════");
+
+                    #if defined(_MSC_VER)
+                    __debugbreak();
+                    #else
+                    __builtin_trap();
+                    #endif
+                }
+
+                m_serialBuffer.clear();
             }
-
-            m_serialBuffer.clear();
         }
     }
 

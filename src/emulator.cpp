@@ -27,7 +27,7 @@ void emulator::initalizeEmulator()
 
 	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer, m_cpu);
 
-	m_debugUI = std::make_unique<debugUI>(m_cartridge,m_cpu);
+	m_debugUI = std::make_unique<debugUI>(m_cartridge, m_cpu, m_bus);
 	m_menu = std::make_unique<mainMenu>();
 
 	m_menu->init();
@@ -39,7 +39,61 @@ void emulator::initalizeEmulator()
 
 void emulator::runEmulator()
 {
+	// Track state transitions so we start/stop the emulation thread once
+	static emulatorStates lastState = EMU_STATE_MENU;
+	if (state != lastState)
+	{
+		if (state == EMU_STATE_RUNNING)
+		{
+			// start the background emulation thread if not already running
+			startEmulation();
+		}
+		else if (lastState == EMU_STATE_RUNNING)
+		{
+			// leaving RUNNING -> stop the emulation thread
+			stopEmulation();
+		}
+		lastState = state;
+	}
+
 	switch (state)
+	{
+		case EMU_STATE_MENU:
+		{
+			if (mainmenuActive == true)
+			{
+				mainmenuActive = m_menu->openMainMenu(filepath);
+			}
+			if (!filepath.empty())
+			{
+				state = EMU_STATE_RUNNING; // will trigger startEmulation on next frame
+			}
+			break;
+		}
+		case EMU_STATE_RUNNING:
+		{
+			if (romLoaded == false)
+			{
+				romLoaded = m_cartridge->loadCartridge(filepath);
+			}
+			// Do not run CPU cycles here — background thread (startEmulation) handles it.
+			break;
+		}
+		case EMU_STATE_PAUSED:
+		{
+			SDL_Delay(10);
+			break;
+		}
+		default:
+			break;
+	}
+
+	if (debugUIActive)
+	{
+		m_debugUI->UpdateUIPanels();
+	}
+
+	/*switch (state)
 	{
 		case EMU_STATE_MENU:
 		{
@@ -60,10 +114,18 @@ void emulator::runEmulator()
 				romLoaded = m_cartridge->loadCartridge(filepath);
 			}
 
-			for (int i = 0; i < 10000; i++)
+			// Game Boy runs at ~4.194 MHz
+			// At 60 FPS, that's ~69,905 cycles per frame
+			static const uint32_t CYCLES_PER_FRAME = 69905;
+
+			uint32_t cyclesThisFrame = 0;
+			while (cyclesThisFrame < CYCLES_PER_FRAME)
 			{
+				uint32_t cyclesBefore = m_clock->getTicks();
 				m_cpu->emulateCycle();
+				cyclesThisFrame += (m_clock->getTicks() - cyclesBefore);
 			}
+
 			break;
 		}
 		case EMU_STATE_PAUSED:
@@ -80,5 +142,51 @@ void emulator::runEmulator()
 	if (debugUIActive)
 	{
 		m_debugUI->UpdateUIPanels();
+	}*/
+}
+
+void emulator::startEmulation()
+{
+	if (m_running)
+		return; // Already running
+
+	m_running = true;
+	m_shouldStop = false;
+
+	m_emulationThread = std::thread([this]() {
+		static const uint32_t CYCLES_PER_FRAME = 69905;
+
+		while (!m_shouldStop)
+		{
+			if (state == EMU_STATE_RUNNING && romLoaded)
+			{
+				uint32_t cyclesThisFrame = 0;
+				while (cyclesThisFrame < CYCLES_PER_FRAME && !m_shouldStop)
+				{
+					uint32_t cyclesBefore = m_clock->getTicks();
+					m_cpu->emulateCycle();
+					cyclesThisFrame += (m_clock->getTicks() - cyclesBefore);
+				}
+
+				// Frame limiting
+				//SDL_Delay(16); // ~60 FPS
+			}
+			else
+			{
+				SDL_Delay(1); // Yield CPU when not running
+			}
+		}
+	});
+}
+
+void emulator::stopEmulation()
+{
+	m_shouldStop = true;
+
+	if (m_emulationThread.joinable())
+	{
+		m_emulationThread.join();
 	}
+
+	m_running = false;
 }

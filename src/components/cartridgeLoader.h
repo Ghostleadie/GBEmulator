@@ -28,7 +28,7 @@ struct cartirdge
 
 struct cartridgeContext
 {
-	char filename[1024];
+	char filename[1024] = {0};
 	uint32_t romSize = 0;
 	char* romData = nullptr;
 	cartirdge* header = nullptr;

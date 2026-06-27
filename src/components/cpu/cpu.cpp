@@ -6,7 +6,7 @@
 #include "../bus.h"
 #include <cstdint>
 #include "../../emulator.h"
-#include "../../Utility/dbg.h"
+#include "../../Utility/SerialPortDebugger.h"
 #include "../../Utility/utility.h"
 
 #ifdef ENABLE_TESTING
@@ -368,9 +368,9 @@ void cpu::emulateCycle()
 		}
 		else
 		{
-			if (m_dbg.update(*m_bus.get()))
+			if (m_serialDebugger.update(*m_bus.get()))
 			{
-				m_dbg.print();
+				m_serialDebugger.print();
 			}
 			if (traceLogging)
 			{

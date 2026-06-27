@@ -32,7 +32,7 @@ bool mainMenu::openMainMenu(std::string& filepath)
 		if (result == NFD_OKAY)
 		{
 			const char* path = outPath;
-			LOG_INFO("Rom Path: {}", path);
+			//LOG_INFO("Rom Path: {}", path);
 			filepath = outPath; // Store the selected file path
 			NFD_FreePathU8(outPath);
 			ImGui::End();

@@ -32,9 +32,13 @@ public:
 	void writeIO(uint16_t address, uint8_t value);
 
 	// Bus-side serial logging ("Serial:" lines + Failed-detection trap).
-	// Off by default; the CPU dbg path handles the SERIAL:/RESULT: logs.
+	// Off by default; the CPU's SerialPortDebugger handles the SERIAL:/RESULT: logs.
 	void setSerialLogging(bool enabled) { m_serialLogging = enabled; }
 	bool getSerialLogging() const { return m_serialLogging; }
+
+	// Complete serial output, captured passively for the debug panel.
+	const char* getSerialOutput() const { return m_serialOutput; }
+	void clearSerialOutput() { m_serialOutput[0] = '\0'; m_serialOutputLen = 0; }
 
 private:
 	std::shared_ptr<cartridgeLoader> m_cartridge;
@@ -49,6 +53,9 @@ private:
 	char serialData[2];
 	std::string m_serialBuffer;
 	bool m_serialLogging = false;
+
+	char m_serialOutput[8192] = {0};
+	int  m_serialOutputLen = 0;
 };
 
 

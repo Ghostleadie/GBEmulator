@@ -20,17 +20,20 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
     SDL_SetAppMetadata("GameBoy Emulator", "0.0.1", "com.emulator.gameboy");
     log::Init();
-if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
+if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
+	{
         LOG_ERROR("SDL_Init Error: {}", SDL_GetError());
         return SDL_APP_FAILURE;
     }
     LOG_INFO("SDL initialized");
-    if (!TTF_Init()) {
+    if (!TTF_Init())
+    {
     	LOG_ERROR("TTF_Init Error: {}", SDL_GetError());
         return SDL_APP_FAILURE;
     }
     LOG_INFO("SDL_ttf initialized");
-    if (!SDL_CreateWindowAndRenderer("GameBoy Emulator", 640, 480, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("GameBoy Emulator", 640, 480, SDL_WINDOW_RESIZABLE, &window, &renderer))
+    {
         LOG_ERROR("Couldn't create window/renderer: {}", SDL_GetError());
         return SDL_APP_FAILURE;
     }
@@ -69,7 +72,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 				LOG_INFO("Emulator Running");
 			}
 		}
-
+		if (event->key.key == SDLK_ESCAPE)
+		{
+			return SDL_APP_SUCCESS;
+		}
 	}
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */

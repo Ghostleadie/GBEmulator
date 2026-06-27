@@ -6,7 +6,7 @@
 #define GAMEBOYEMULATOR_CPU_H
 #include "../base/component.h"
 #include "opcodes.h"
-#include "../dbg.h"
+#include "../../Utility/SerialPortDebugger.h"
 #include "../emulatorClock.h"
 
 
@@ -221,7 +221,7 @@ private:
 	uint8_t interruptEnableRegister;
 	bool enablingIME;
 	uint8_t interruptFlags;
-	dbg m_dbg;
+	SerialPortDebugger m_serialDebugger;
 };
 
 #endif //GAMEBOYEMULATOR_CPU_H
