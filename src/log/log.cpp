@@ -2,6 +2,7 @@
 
 std::shared_ptr<spdlog::logger> log::m_emulatorLogger;
 std::shared_ptr<spdlog::logger> log::m_cartridgeLogger;
+std::shared_ptr<spdlog::logger> log::m_traceLogger;
 
 void log::Init()
 {
@@ -27,4 +28,14 @@ void log::Init()
 	//m_emulatorLogger->set_level(spdlog::level::trace);
 	m_cartridgeLogger = spdlog::stdout_color_mt("Cartridge");
 	m_cartridgeLogger->set_level(spdlog::level::trace);
+
+	// Dedicated CPU instruction trace for the Gameboy Doctor tool.
+	// File-only, raw "%v" pattern (no timestamp/name/level prefix) so the
+	// output can be diffed directly against a reference log. Truncated each
+	// run and flushed per line so a hung/looping ROM still leaves a usable trace.
+	auto trace_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("trace.txt", true);
+	m_traceLogger = std::make_shared<spdlog::logger>("Trace", trace_sink);
+	m_traceLogger->set_pattern("%v");
+	m_traceLogger->set_level(spdlog::level::info);
+	m_traceLogger->flush_on(spdlog::level::info);
 }

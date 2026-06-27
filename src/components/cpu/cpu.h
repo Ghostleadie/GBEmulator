@@ -6,6 +6,7 @@
 #define GAMEBOYEMULATOR_CPU_H
 #include "../base/component.h"
 #include "opcodes.h"
+#include "../dbg.h"
 #include "../emulatorClock.h"
 
 
@@ -174,6 +175,10 @@ public:
 	void setSteppingMode(const bool value) { steppingMode = value; }
 	bool getSteppingMode() const { return steppingMode; }
 
+	// Gameboy Doctor instruction trace (writes to trace.txt via CPU_TRACE).
+	void setTraceLogging(const bool value) { traceLogging = value; }
+	bool getTraceLogging() const { return traceLogging; }
+
 	void setStepComplete(const bool value) { stepComplete = value; }
 	bool getStepComplete() const { return stepComplete; }
 
@@ -186,6 +191,8 @@ public:
 	void setInterruptFlags(const uint8_t value) { interruptFlags = value; }
 	uint8_t getInterruptFlags() const { return interruptFlags; }
 
+	std::vector<std::string> getOpcodesHistory() const { return opcodesHistory; }
+
 	// utility functions
 	static uint16_t reverse(const uint16_t number) { return ((number & 0xFF00) >> 8) | ((number & 0x00FF) << 8); }
 
@@ -193,12 +200,17 @@ public:
 	void execSingleInstructionWithOpcode(uint8_t opcode);
 	void execSingleInstruction();
 private:
+	// Emit one Gameboy Doctor trace line for the state at the start of the
+	// instruction located at `pc` (must be called before fetchOpcode()).
+	void traceInstruction(uint16_t pc);
+
 	std::shared_ptr<memorycomponentMessanger> m_bus;
 	std::shared_ptr<emulatorClock> m_clock;
-	std::vector<opcode> opcodesHistory;
+	std::vector<std::string> opcodesHistory;
 	bool steppingMode = false;
 	bool stepComplete = false;
 	bool halted = false;
+	bool traceLogging = false;
 	registers registers = {};
 	uint8_t currentOpcode = 0;
 	opcode currentOpcodeData;
@@ -209,6 +221,7 @@ private:
 	uint8_t interruptEnableRegister;
 	bool enablingIME;
 	uint8_t interruptFlags;
+	dbg m_dbg;
 };
 
 #endif //GAMEBOYEMULATOR_CPU_H

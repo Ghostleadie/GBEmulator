@@ -19,8 +19,6 @@ void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, cons
 
 uint8_t bus::read(uint16_t address)
 {
-	if (address == 0xFF01) return 0x00;  // Serial data
-	if (address == 0xFF02) return 0x7E;  // Serial control
 
 	if (address <= 0x00FF) {
 		if (m_cartridge) {
@@ -74,9 +72,9 @@ uint8_t bus::read(uint16_t address)
 		//LOG_INFO("Bus Read from I/o: {:04X}", address);
 		return readIO(address);
 	}
-	else if (address < 0xFFFF)
+	else if (address == 0xFFFF)
 	{
-		LOG_INFO("Bus Read from Interrupt enable register: {:04X}", address);
+		//LOG_INFO("Bus Read from Interrupt enable register: {:04X}", address);
 		//CPU Interrupt enable register
 		return m_cpu.lock()->getIERegister();
 	}
@@ -92,7 +90,7 @@ uint8_t bus::read(uint16_t address)
 		}
 		else
 		{
-			LOG_ERROR("invalid memory read: {}", address);
+			LOG_ERROR("invalid memory read: {:04X}", address);
 			return 0;
 		}
 	}
@@ -101,6 +99,43 @@ uint8_t bus::read(uint16_t address)
 
 void bus::write(uint16_t address, const uint8_t value)
 {
+
+if (m_serialLogging && address == 0xFF01) // Serial data register (logging only)
+    {
+        char c = static_cast<char>(value);
+        m_serialBuffer += c;
+
+        if (c == '\n')
+        {
+            LOG_INFO("Serial: {}", m_serialBuffer);
+
+            // Check for failure
+            if (m_serialBuffer.find("Failed") != std::string::npos)
+            {
+                LOG_ERROR("═══════════════════════════════════════");
+                LOG_ERROR("TEST FAILED DETECTED");
+                LOG_ERROR("Serial: {}", m_serialBuffer);
+                LOG_ERROR("PC: 0x{:04X}", m_cpu.lock()->getRegisters()->pc);
+                LOG_ERROR("Last opcode: 0x{:02X}", m_cpu.lock()->getCurrentOpcode());
+                LOG_ERROR("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X}",
+                          m_cpu.lock()->getRegisters()->a, m_cpu.lock()->getRegisters()->f,
+                          m_cpu.lock()->getRegisters()->b, m_cpu.lock()->getRegisters()->c,
+                          m_cpu.lock()->getRegisters()->d, m_cpu.lock()->getRegisters()->e,
+                          m_cpu.lock()->getRegisters()->h, m_cpu.lock()->getRegisters()->l);
+                LOG_ERROR("SP:{:04X}", m_cpu.lock()->getRegisters()->sp);
+                LOG_ERROR("═══════════════════════════════════════");
+
+                #if defined(_MSC_VER)
+                __debugbreak();
+                #else
+                __builtin_trap();
+                #endif
+            }
+
+            m_serialBuffer.clear();
+        }
+    }
+
 	//LOG_INFO("Bus Write: 0x{:02X} to address 0x{:04X}", value, address);
 	if (address < 0x8000)
 	{
@@ -148,12 +183,13 @@ void bus::write(uint16_t address, const uint8_t value)
 	}
 	else if (address < 0xFFFF)
 	{
-		//CPU Interrupt enable register
-		m_cpu.lock()->setIERegister(value);
+		//High RAM (0xFF80 - 0xFFFE)
+		writeHRam(address, value);
 	}
 	else
 	{
-		writeHRam(address,value);
+		//CPU Interrupt enable register (0xFFFF)
+		m_cpu.lock()->setIERegister(value);
 	}
 }
 
@@ -220,7 +256,7 @@ uint8_t bus::readIO(uint16_t address)
 	{
 		return 0x90;
 	}
-	LOG_WARN("Trying to read from IO address other than 0xFF01 & 0xFF02: {}", address);
+	LOG_WARN("Trying to read from IO address other than 0xFF01 & 0xFF02: {:02X}", address);
 }
 
 void bus::writeIO(uint16_t address, uint8_t value)
@@ -233,7 +269,7 @@ void bus::writeIO(uint16_t address, uint8_t value)
 	{
 		serialData[0] = value;
 
-		// Enhanced serial logging
+	/*	// Enhanced serial logging
 		char ch = (value >= 32 && value <= 126) ? (char)value : '?';
 		LOG_WARN("=== SERIAL DATA: 0x{:02X} ('{}') ===", value, ch);
 
@@ -247,15 +283,38 @@ void bus::writeIO(uint16_t address, uint8_t value)
 			serialBuffer.find("01-special") != std::string::npos) {
 			LOG_WARN("=== BLARGG TEST RESULT: {} ===", serialBuffer);
 			}
+*/
+		// When transfer is initiated (bit 7 set), immediately complete it
+		/*if (value == 0x81)
+		{
+			char ch = static_cast<char>(serialData[0]);
+			LOG_WARN("=== SERIAL OUT: 0x{:02X} ('{}') ===", serialData[0],
+					 (ch >= 32 && ch <= 126) ? ch : '?');
+
+			static std::string serialBuffer;
+			serialBuffer += (ch >= 32 && ch <= 126) ? ch : '?';
+
+			if (ch == '\n' || serialBuffer.size() > 100)
+			{
+				LOG_WARN("Serial output: {}", serialBuffer);
+				serialBuffer.clear();
+			}
+
+			// Auto-complete the transfer immediately
+			serialData[1] = 0x00;
+
+			// Trigger serial interrupt (bit 3)
+			m_cpu.lock()->requestInterrupt(interruptTypes::INT_SERIAL);
+		}*/
 		return;
 	}
 
 	if (address == 0xFF02)
 	{
 		serialData[1] = value;
-		LOG_WARN("=== SERIAL CONTROL: 0x{:02X} ===", value);
+		//LOG_WARN("=== SERIAL CONTROL: 0x{:02X} ===", value);
 		if (value == 0x81) {
-			LOG_WARN("Serial transfer initiated!");
+			//LOG_WARN("Serial transfer initiated!");
 		}
 		return;
 	}

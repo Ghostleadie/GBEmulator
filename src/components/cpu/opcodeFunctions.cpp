@@ -61,8 +61,8 @@ void AddSPCommand::execute(cpu& m_cpu)
 	const int8_t offset = static_cast<int8_t>(m_cpu.getFetchedData() & 0xFF);
 	const uint16_t result = sp + offset;
 
-	const int h = (sp & 0xF) + (offset & 0xF) > 0x0F;
-	const int c = (sp & 0xFF) + (offset & 0xFF) > 0xFF;
+	const int h = ((sp & 0xF) + (offset & 0xF)) > 0x0F;
+	const int c = ((sp & 0xFF) + (offset & 0xFF)) > 0xFF;
 
 	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, result & 0xFFFF);
 	m_cpu.setFlags(0, 0, h, c);
@@ -336,39 +336,27 @@ void CpCommand::execute(cpu& m_cpu)
 void DaaCommand::execute(cpu& m_cpu)
 {
 	uint8_t u = 0;
-	int fc = 0;
+	int fullCarry = 0;
 
 	if (utility::checkBit(m_cpu.getRegisters()->f, 5) || (!utility::checkBit(m_cpu.getRegisters()->f, 6) && (m_cpu.getRegisters()->a & 0xF) > 9)) {
-		u = 6;
+		u = 0x06;
 	}
 
 	if (utility::checkBit(m_cpu.getRegisters()->f, 4) || (!utility::checkBit(m_cpu.getRegisters()->f, 6) && m_cpu.getRegisters()->a > 0x99)) {
 		u |= 0x60;
-		fc = 1;
+		fullCarry = 1;
 	}
 
 	m_cpu.getRegisters()->a += utility::checkBit(m_cpu.getRegisters()->f, 6) ? -u : u;
 
-	m_cpu.setFlags(m_cpu.getRegisters()->a == 0, -1, 0, fc);
+	m_cpu.setFlags(m_cpu.getRegisters()->a == 0, -1, 0, fullCarry);
 }
 
 void Dec16BitCommand::execute(cpu& m_cpu)
 {
 	uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - 1;
 	m_cpu.getClock()->cycles(1);
-	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
-		value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL)) - 1;
-		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
-	} else {
-		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
-		value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
-	}
-
-	if ((m_cpu.getCurrentOpcode() & 0x03) == 0x03) {
-		return;
-	}
-
-	m_cpu.setFlags(value == 0, 0, (value & 0x0F) == 0x0F, -1);
+	m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
 }
 
 void Dec8BitCommand::execute(cpu& m_cpu)
@@ -409,10 +397,15 @@ void Inc8BitCommand::execute(cpu& m_cpu)
 {
 	uint16_t oldValue, value;
 
-		// Regular register case
+	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
+		oldValue = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
+		value = (oldValue + 1) & 0xFF;
+		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
+	} else {
 		oldValue = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
 		value = (oldValue + 1) & 0xFF;
 		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
+	}
 
 	if ((m_cpu.getCurrentOpcode() & 0x03) == 0x03) {
 		return;
@@ -542,6 +535,11 @@ void LdhCommand::execute(cpu& m_cpu)
 		// Store A to memory
 		m_cpu.getBus().lock()->write(addr, m_cpu.getRegisters()->a);
 	}*/
+
+	if (m_cpu.getPC() == 0xCB92)
+	{
+		LOG_INFO("LDH");
+	}
 
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_A) {
 		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, m_cpu.getBus().lock()->read(0xFF00 | m_cpu.getFetchedData()));
@@ -689,11 +687,11 @@ void RstCommand::execute(cpu& m_cpu)
 {
 	if (m_cpu.checkConditionFlags())
 	{
-		m_cpu.getClock()->cycles(2);
-		m_cpu.pushStack16(m_cpu.getRegisters()->pc);
-
-		m_cpu.getRegisters()->pc = m_cpu.getCurrentOpcodeData().param;
 		m_cpu.getClock()->cycles(1);
+		m_cpu.pushStack16(m_cpu.getRegisters()->pc);
+		m_cpu.getClock()->cycles(1);
+		m_cpu.getRegisters()->pc = m_cpu.getCurrentOpcodeData().param;
+
 	}
 }
 
@@ -795,6 +793,10 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
         }
         case OP_INC:    // INC 8-bit: Increment 8-bit register
         {
+        	if (opcode.reg1 == RT_HL && opcode.mode == AM_MR)
+        	{
+        		return std::make_unique<Inc8BitCommand>();
+        	}
         	if ((opcode.reg1 == RT_BC || opcode.reg1 == RT_DE || opcode.reg1 == RT_HL || opcode.reg1 == RT_SP))
         	{
         		return std::make_unique<Inc16BitCommand>();
@@ -946,8 +948,6 @@ std::unique_ptr<OpcodeCommand> OpcodeCommandFactory::createCommand(const opcode&
         {
 	        return std::make_unique<RlaCommand>();
         }
-        //case OP_ADDSP:   // ADD SP, e: Add signed immediate to SP
-            //return std::make_unique<AddSPCommand>();
         default:
         {
 	        LOG_ERROR("Execution Failed: Unimplemented Opcode");

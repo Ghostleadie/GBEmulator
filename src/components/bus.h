@@ -31,6 +31,11 @@ public:
 	uint8_t readIO(uint16_t address);
 	void writeIO(uint16_t address, uint8_t value);
 
+	// Bus-side serial logging ("Serial:" lines + Failed-detection trap).
+	// Off by default; the CPU dbg path handles the SERIAL:/RESULT: logs.
+	void setSerialLogging(bool enabled) { m_serialLogging = enabled; }
+	bool getSerialLogging() const { return m_serialLogging; }
+
 private:
 	std::shared_ptr<cartridgeLoader> m_cartridge;
 	std::shared_ptr<joypad> m_joypad;
@@ -42,6 +47,8 @@ private:
 	std::array<uint8_t, 0x80> hRam{};
 
 	char serialData[2];
+	std::string m_serialBuffer;
+	bool m_serialLogging = false;
 };
 
 

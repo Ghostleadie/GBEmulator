@@ -21,6 +21,7 @@ public:
 
 	void cycles(std::uint64_t cpuCycles) override;
 
+	uint64_t getTicks() const { return m_ticks; }
 private:
 	std::weak_ptr<timer> m_timer;
 	//std::weak_ptr<ppu>   m_ppu;

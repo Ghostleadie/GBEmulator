@@ -323,6 +323,18 @@ uint16_t cpu::readRegister(const registryType reg) const
 }
 
 
+void cpu::traceInstruction(uint16_t pc)
+{
+	// Gameboy Doctor line: CPU state at the START of the instruction at `pc`.
+	// PC/PCMEM use the pre-fetch pc; F is the raw flags byte.
+	CPU_TRACE("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
+		registers.a, registers.f, registers.b, registers.c, registers.d, registers.e, registers.h, registers.l,
+		registers.sp, pc,
+		m_bus->read(pc), m_bus->read(static_cast<uint16_t>(pc + 1)),
+		m_bus->read(static_cast<uint16_t>(pc + 2)), m_bus->read(static_cast<uint16_t>(pc + 3)));
+}
+
+
 void cpu::emulateCycle()
 {
 	if (!halted)
@@ -330,19 +342,22 @@ void cpu::emulateCycle()
 		uint16_t pc_before = registers.pc;
 		if (steppingMode == true)
 		{
-
 			if (stepComplete == false)
 			{
+				if (traceLogging)
+				{
+					traceInstruction(pc_before);
+				}
 				fetchOpcode();
 				fetchData();
 				if (currentOpcodeData.execute != nullptr)
 				{
-					LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, pc_before);
+					//LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, pc_before);
 					currentOpcodeData.execute(*this);
-					opcodesHistory.push_back(currentOpcodeData);
-					LOG_INFO("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
+					opcodesHistory.push_back(currentOpcodeData.name);
+					/*LOG_INFO("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
 																	registers.a, registers.f, registers.b, registers.c, registers.d, registers.e, registers.h, registers.l, registers.sp, pc_before,
-																	m_bus->read(pc_before), m_bus->read(pc_before+1), m_bus->read(pc_before+2), m_bus->read(pc_before+3));
+																	m_bus->read(pc_before), m_bus->read(pc_before+1), m_bus->read(pc_before+2), m_bus->read(pc_before+3));*/
 				}
 				else
 				{
@@ -353,22 +368,29 @@ void cpu::emulateCycle()
 		}
 		else
 		{
-
+			if (m_dbg.update(*m_bus.get()))
+			{
+				m_dbg.print();
+			}
+			if (traceLogging)
+			{
+				traceInstruction(pc_before);
+			}
 			fetchOpcode();
 			fetchData();
 			if (currentOpcodeData.execute != nullptr)
 			{
 
-				LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, pc_before);
+				//LOG_INFO("Executing {}: {:02X} Program Counter: {:04X}", currentOpcodeData.name, currentOpcode, pc_before);
 				currentOpcodeData.execute(*this);
 				//LOG_INFO("A: {:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{} PC:{} PCMEM:{},{},{},{}= {} PC=0x{:04X}, opcode=0x{:02X}, A=0x{:02X}, BC=0x{:04X}, DE=0x{:04X}, HL=0x{:04X}",
 				//		 cycleCount, registers.pc, m_bus->read(registers.pc),
 				//		 registers.a, registers.bc, registers.de, registers.hl);
-				opcodesHistory.push_back(currentOpcodeData);
-				LOG_INFO("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
+				opcodesHistory.push_back(currentOpcodeData.name);
+				/*LOG_INFO("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
 																	registers.a, registers.f, registers.b, registers.c, registers.d, registers.e, registers.h, registers.l, registers.sp, pc_before,
 																	m_bus->read(pc_before), m_bus->read(pc_before+1), m_bus->read(pc_before+2), m_bus->read(pc_before+3));
-
+*/
 			}
 			else
 			{
@@ -549,8 +571,10 @@ bool cpu::checkConditionFlags()
 		case CT_NZ:
 			//LOG_INFO("CT_NZ: returning {} (z={})", !z, z);
 			return !z;
+		default:
+			LOG_ERROR("Unknown condition type: {}", static_cast<int>(currentOpcodeData.cond));
 	}
-	//LOG_WARN("Unknown condition type: {}", static_cast<int>(currentOpcodeData.cond));
+	//
 	return false;
 }
 
@@ -577,18 +601,18 @@ void cpu::setZeroFlag(const int8_t z)
 
 void cpu::setSubtractFlag(const int8_t n)
 {
-		if (n != -1)
-		{
-			utility::setBitTo(registers.f, 6, n);
-		}
+	if (n != -1)
+	{
+		utility::setBitTo(registers.f, 6, n);
+	}
 }
 
 void cpu::setHalfCarryFlag(const int8_t h)
 {
-		if (h != -1)
-		{
-			utility::setBitTo(registers.f, 5, h);
-		}
+	if (h != -1)
+	{
+		utility::setBitTo(registers.f, 5, h);
+	}
 }
 
 void cpu::setCarryFlag(const int8_t c)

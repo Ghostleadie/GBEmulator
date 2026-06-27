@@ -17,9 +17,11 @@ public:
 
 	inline static std::shared_ptr<spdlog::logger>& GetEmulatorLogger() { return m_emulatorLogger;}
 	inline static std::shared_ptr<spdlog::logger>& GetCartridgeLogger() { return m_cartridgeLogger; }
+	inline static std::shared_ptr<spdlog::logger>& GetTraceLogger() { return m_traceLogger; }
 private:
 	static std::shared_ptr<spdlog::logger> m_emulatorLogger;
 	static std::shared_ptr<spdlog::logger> m_cartridgeLogger;
+	static std::shared_ptr<spdlog::logger> m_traceLogger;
 };
 
 #define LOG_TRACE(...)		SPDLOG_LOGGER_TRACE(::log::GetEmulatorLogger(), __VA_ARGS__ )
@@ -31,6 +33,9 @@ private:
 #define CARTRIDGE_INFO(...)		SPDLOG_LOGGER_INFO(::log::GetCartridgeLogger(), __VA_ARGS__)
 #define CARTRIDGE_WARN(...)		SPDLOG_LOGGER_WARN(::log::GetCartridgeLogger(), __VA_ARGS__)
 #define CARTRIDGE_ERROR(...)	SPDLOG_LOGGER_ERROR(::log::GetCartridgeLogger(), __VA_ARGS__)
+
+// Raw, unformatted CPU instruction trace (Gameboy Doctor format) -> trace.txt
+#define CPU_TRACE(...)			SPDLOG_LOGGER_INFO(::log::GetTraceLogger(), __VA_ARGS__)
 
 
 #endif //GAMEBOYEMULATOR_LOG_H
