@@ -44,9 +44,8 @@ add_executable(GameBoyEmulator main.cpp
         UI/debugpanels/cpuDebugUI.h
         components/cpu/opcodeFunctions.cpp
         components/cpu/opcodeFunctions.h
-        Utility/dbg.h
-        Utility/dbg.cpp
-        Utility/dbg.cpp
+        Utility/SerialPortDebugger.h
+        Utility/SerialPortDebugger.cpp
         interfaces/IClock.h
         components/emulatorClock.cpp
         components/emulatorClock.h
