@@ -16,7 +16,7 @@ class SerialPortDebugger {
 public:
 	SerialPortDebugger();
 
-	bool update(memoryComponentMessanger& m_bus);
+	bool update(IComponentMessanger& m_bus);
 	void print();
 	void clear();
 

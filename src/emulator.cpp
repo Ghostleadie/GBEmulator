@@ -19,12 +19,12 @@ void emulator::initalizeEmulator()
 {
 	m_bus = std::make_shared<bus>();
 	m_timer = std::make_shared<timer>();
-	m_clock = std::make_shared<emulatorClock>(m_timer);
+	m_ppu = std::make_shared<ppu>();
+	m_clock = std::make_shared<emulatorClock>();
     m_cpu = std::make_shared<cpu>(m_bus, m_clock);
 
     m_cartridge = std::make_shared<cartridgeLoader>();
 	m_joypad = std::make_shared<joypad>();
-	m_ppu = std::make_shared<ppu>();
 	m_interruptController = std::make_shared<interruptController>();
 
 	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer, m_cpu, m_interruptController);
@@ -35,8 +35,9 @@ void emulator::initalizeEmulator()
 	m_menu->init();
 	m_cpu->init();
 	m_timer->init(m_interruptController);
-
-	//m_clock.init(m_timer);
+	m_ppu->init();
+	m_clock->addDevice(m_timer.get());
+	m_clock->addDevice(m_ppu.get());
 }
 
 void emulator::runEmulator()

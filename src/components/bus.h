@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jack_ on 31/08/2025.
 //
 
@@ -14,7 +14,7 @@ class joypad;
 class cartridgeLoader;
 class interruptController;
 
-class bus :   public memoryComponentMessanger
+class bus :   public IComponentMessanger
 {
 public:
 	bus()= default;

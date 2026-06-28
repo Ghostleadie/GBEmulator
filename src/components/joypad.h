@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jack_ on 31/08/2025.
 //
 
@@ -6,7 +6,7 @@
 #define GAMEBOYEMULATOR_JOYPAD_H
 #include "../interfaces/IComponentMessanger.h"
 
-class joypad : public memoryComponentMessanger
+class joypad : public IComponentMessanger
 {
 public:
 	// Read a byte from a device-local address (offset from base).

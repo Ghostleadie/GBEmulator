@@ -1,20 +1,21 @@
-﻿//
+//
 // Created by Jack_ on 31/08/2025.
 //
 
 #ifndef GAMEBOYEMULATOR_TIMER_H
 #define GAMEBOYEMULATOR_TIMER_H
 #include "../interfaces/IComponentMessanger.h"
-#include "../interfaces/InterruptSink.h"
+#include "../interfaces/IInterruptSink.h"
+#include "../interfaces/IClocked.h"
 
-class timer : public memoryComponentMessanger
+class timer : public IComponentMessanger, public IClocked
 {
 public:
 	timer() = default;
 	~timer() override = default;
 
 	void init(std::shared_ptr<IInterruptSink> interruptSink);
-	void tick();
+	void tick() override;
 
 	// Read a byte from a device-local address (offset from base).
 	uint8_t read(uint16_t address);

@@ -11,7 +11,7 @@ SerialPortDebugger::SerialPortDebugger() : msg_size(0) {
 	dbg_msg[0] = '\0';
 }
 
-bool SerialPortDebugger::update(memoryComponentMessanger& m_bus) {
+bool SerialPortDebugger::update(IComponentMessanger& m_bus) {
 	if (m_bus.read(0xFF02) == 0x81) {
 		char c = static_cast<char>(m_bus.read(0xFF01));
 		m_bus.write(0xFF02, 0x00);

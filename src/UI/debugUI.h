@@ -7,6 +7,7 @@
 #include "debugpanels/busDebugUI.h"
 #include "debugpanels/cartridgeDebugUI.h"
 #include "debugpanels/cpuDebugUI.h"
+#include "debugpanels/tileDebugUI.h"
 
 class timer;
 class ppu;
@@ -36,6 +37,7 @@ private:
 	cartridgeDebugUI cartridgeDebugUI;
 	cpuDebugUI cpuDebugUI;
 	busDebugUI busDebugUI;
+	tileDebugUI tileDebugUI;
 };
 
 

@@ -41,11 +41,13 @@ add_executable(GameBoyEmulator main.cpp
         Utility/SerialPortDebugger.h
         Utility/SerialPortDebugger.cpp
         interfaces/IClock.h
+        interfaces/IClocked.h
         components/emulatorClock.cpp
         components/emulatorClock.h
         components/interruptController.cpp
         components/interruptController.h
-        interfaces/InterruptSink.h
+        interfaces/IInterruptSink.h
+        UI/debugpanels/tileDebugUi.cpp
 )
 
 target_precompile_headers(GameBoyEmulator PUBLIC pch.h)

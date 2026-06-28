@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jack_ on 31/08/2025.
 //
 
@@ -36,7 +36,7 @@ struct cartridgeContext
 	cartirdge* header = nullptr;
 };
 
-class cartridgeLoader : public memoryComponentMessanger, public ICartridgeDebug
+class cartridgeLoader : public IComponentMessanger, public ICartridgeDebug
 {
 public:
 	cartridgeLoader() = default;

@@ -10,4 +10,5 @@ void debugUI::UpdateUIPanels()
 	cartridgeDebugUI.updateUI(m_Loader.lock()->peekCartridgeContext());
 	cpuDebugUI.updateUI(*m_cpu.lock());
 	busDebugUI.updateUI(*m_bus.lock());
+	tileDebugUI.updateUI(*m_bus.lock());
 }

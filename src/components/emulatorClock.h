@@ -1,12 +1,13 @@
-﻿//
+//
 // Created by Jack_ on 24/09/2025.
 //
 
 #ifndef GAMEBOYEMULATOR_EMULATORCLOCK_H
 #define GAMEBOYEMULATOR_EMULATORCLOCK_H
-#include "ppu.h"
-#include "timer.h"
 #include "../interfaces/IClock.h"
+#include "../interfaces/IClocked.h"
+#include <vector>
+#include <cstdint>
 
 class emulatorClock : public IClock
 {
@@ -14,18 +15,16 @@ public:
 	emulatorClock() = default;
 	~emulatorClock() override = default;
 
-	emulatorClock(std::shared_ptr<timer> t/*, std::shared_ptr<ppu> p*/)
-	: m_timer(t)/*, m_ppu(p)*/ {}
+	// Register a device to be ticked once per T-cycle. Non-owning: the emulator
+	// owns the devices and outlives the clock. Registration order = tick order.
+	void addDevice(IClocked* device) { m_devices.push_back(device); }
 
-	void init(std::shared_ptr<timer> t);
+	void cycles(std::uint64_t cpuCycles) override; // cpuCycles = M-cycles
 
-	void cycles(std::uint64_t cpuCycles) override;
-
-	uint64_t getTicks() const { return m_ticks; }
+	uint64_t getTicks() const { return m_ticks; }  // T-cycle count since start
 private:
-	std::weak_ptr<timer> m_timer;
-	//std::weak_ptr<ppu>   m_ppu;
-	std::uint64_t        m_ticks{0};
+	std::vector<IClocked*> m_devices;
+	std::uint64_t          m_ticks{0};
 };
 
 

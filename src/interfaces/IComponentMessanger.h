@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jack_ on 30/08/2025.
 //
 
@@ -12,10 +12,10 @@
 // Single device interface: anything the bus can read from / write to
 // (peripherals, RAM regions, the interrupt controller, the bus itself)
 // implements this.
-class memoryComponentMessanger
+class IComponentMessanger
 {
 public:
-	virtual ~memoryComponentMessanger() = default;
+	virtual ~IComponentMessanger() = default;
 
 	// Read a byte from a device-local address (offset from base).
 	virtual uint8_t read(uint16_t address) = 0;

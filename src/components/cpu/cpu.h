@@ -1,11 +1,11 @@
-﻿//
+//
 // Created by Jack_ on 31/08/2025.
 //
 
 #ifndef GAMEBOYEMULATOR_CPU_H
 #define GAMEBOYEMULATOR_CPU_H
 #include "../../interfaces/IComponentMessanger.h"
-#include "../../interfaces/InterruptSink.h"
+#include "../../interfaces/IInterruptSink.h"
 #include <vector>
 #include "opcodes.h"
 #include "../../Utility/SerialPortDebugger.h"
@@ -76,7 +76,7 @@ struct flags
 class cpu
 {
 public:
-	cpu(const std::shared_ptr<memoryComponentMessanger>& bus, const std::shared_ptr<emulatorClock>& clock)
+	cpu(const std::shared_ptr<IComponentMessanger>& bus, const std::shared_ptr<emulatorClock>& clock)
 		: m_bus(bus.get()), m_clock(clock) {};
 
 	void init();
@@ -147,7 +147,7 @@ public:
 	uint16_t getMemoryDestination() const { return memoryDestination; }
 	inline void setMemoryDestination(const uint16_t value) { memoryDestination = value; }
 
-	memoryComponentMessanger* getBus() const { return m_bus; }
+	IComponentMessanger* getBus() const { return m_bus; }
 
 	std::shared_ptr<emulatorClock> getClock() const { return m_clock; }
 
@@ -192,7 +192,7 @@ private:
 
 	// Non-owning: the emulator owns the bus and outlives the cpu (the
 	// emulation thread is joined before teardown).
-	memoryComponentMessanger* m_bus = nullptr;
+	IComponentMessanger* m_bus = nullptr;
 	std::shared_ptr<emulatorClock> m_clock;
 	std::vector<std::string> opcodesHistory;
 	bool steppingMode = false;

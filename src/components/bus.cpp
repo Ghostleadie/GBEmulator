@@ -17,6 +17,10 @@ void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, cons
 	m_cartridge = loader.get();
 	m_joypad = joypad.get();
 	m_ppu = ppu.get();
+	if (m_ppu)
+	{
+		m_ppu->connectBus(this);
+	}
 	m_timer = timer.get();
 	m_cpu = cpu;
 	m_interruptController = interruptController.get();
@@ -177,6 +181,10 @@ if (address == 0xFF01) // Serial data register
 	else if (address < 0xFEA0)
 	{
 		//OAM
+		if (m_ppu->isTransferringDMA())
+		{
+			return;
+		}
 		m_ppu->write(address, value);
 		return;
 	}
@@ -266,9 +274,10 @@ uint8_t bus::readIO(uint16_t address)
 	{
 		return m_interruptController->read(0xFF0F);
 	}
-	if (address == 0xFF44)
+
+	if (utility::inRange(address, 0xFF40, 0xFF4B))
 	{
-		return 0x90;
+		return m_ppu->read(address);
 	}
 
 	return 0xFF;
@@ -284,44 +293,6 @@ void bus::writeIO(uint16_t address, uint8_t value)
 	if (address == 0xFF01)
 	{
 		serialData[0] = value;
-
-	/*	// Enhanced serial logging
-		char ch = (value >= 32 && value <= 126) ? (char)value : '?';
-		LOG_WARN("=== SERIAL DATA: 0x{:02X} ('{}') ===", value, ch);
-
-		static std::string serialBuffer;
-		serialBuffer += ch;
-		LOG_WARN("Serial buffer: '{}'", serialBuffer);
-
-		// Check for Blargg test completion
-		if (serialBuffer.find("Passed") != std::string::npos ||
-			serialBuffer.find("Failed") != std::string::npos ||
-			serialBuffer.find("01-special") != std::string::npos) {
-			LOG_WARN("=== BLARGG TEST RESULT: {} ===", serialBuffer);
-			}
-*/
-		// When transfer is initiated (bit 7 set), immediately complete it
-		/*if (value == 0x81)
-		{
-			char ch = static_cast<char>(serialData[0]);
-			LOG_WARN("=== SERIAL OUT: 0x{:02X} ('{}') ===", serialData[0],
-					 (ch >= 32 && ch <= 126) ? ch : '?');
-
-			static std::string serialBuffer;
-			serialBuffer += (ch >= 32 && ch <= 126) ? ch : '?';
-
-			if (ch == '\n' || serialBuffer.size() > 100)
-			{
-				LOG_WARN("Serial output: {}", serialBuffer);
-				serialBuffer.clear();
-			}
-
-			// Auto-complete the transfer immediately
-			serialData[1] = 0x00;
-
-			// Trigger serial interrupt (bit 3)
-			m_cpu.lock()->requestInterrupt(interruptTypes::INT_SERIAL);
-		}*/
 		return;
 	}
 
@@ -344,6 +315,12 @@ void bus::writeIO(uint16_t address, uint8_t value)
 	if (address == 0xFF0F)
 	{
 		m_interruptController->write(0xFF0F, value);
+		return;
+	}
+
+	if (utility::inRange(address, 0xFF40, 0xFF4B))
+	{
+		m_ppu->write(address, value);
 		return;
 	}
 }

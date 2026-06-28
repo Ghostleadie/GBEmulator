@@ -5,7 +5,7 @@
 #ifndef GAMEBOYEMULATOR_INTERRUPTCONTROLLER_H
 #define GAMEBOYEMULATOR_INTERRUPTCONTROLLER_H
 #include "../interfaces/IComponentMessanger.h"
-#include "../interfaces/InterruptSink.h"
+#include "../interfaces/IInterruptSink.h"
 
 
 // Owns the two interrupt registers and is the single place peripherals raise
@@ -14,7 +14,7 @@
 //   IE (interrupt enable) -> 0xFFFF
 // Peripherals depend only on IInterruptSink::raise(); the CPU consumes IF/IE
 // through the bus (0xFF0F / 0xFFFF) when it services interrupts.
-class interruptController : public memoryComponentMessanger, public IInterruptSink
+class interruptController : public IComponentMessanger, public IInterruptSink
 {
 public:
 	interruptController() = default;
