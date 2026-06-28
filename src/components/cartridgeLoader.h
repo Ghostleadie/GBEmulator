@@ -5,7 +5,9 @@
 #ifndef GAMEBOYEMULATOR_CARTRIDGELOADER_H
 #define GAMEBOYEMULATOR_CARTRIDGELOADER_H
 #include "../interfaces/ICartridgeDebug.h"
-#include "base/component.h"
+#include "../interfaces/IComponentMessanger.h"
+#include <array>
+#include <unordered_map>
 
 
 struct cartirdge
@@ -34,7 +36,7 @@ struct cartridgeContext
 	cartirdge* header = nullptr;
 };
 
-class cartridgeLoader : public memoryComponent, public ICartridgeDebug
+class cartridgeLoader : public memoryComponentMessanger, public ICartridgeDebug
 {
 public:
 	cartridgeLoader() = default;

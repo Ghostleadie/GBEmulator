@@ -21,6 +21,7 @@ class joypad;
 class bus;
 class cartridgeLoader;
 class cpu;
+class interruptController;
 
 enum emulatorStates
 {
@@ -48,6 +49,7 @@ public:
 	const std::shared_ptr<ppu>& getPPU() const { return m_ppu; }
 	const std::shared_ptr<timer>& getTimer() const { return m_timer;}
 	const std::shared_ptr<emulatorClock>& getClock() const { return m_clock;}
+	const std::shared_ptr<interruptController>& getInterruptController() const { return m_interruptController; }
 
 	//std::thread emuThread;
 	//std::atomic<bool> running{false};
@@ -66,6 +68,7 @@ private:
 	std::shared_ptr<joypad> m_joypad;
 	std::shared_ptr<ppu> m_ppu;
 	std::shared_ptr<timer> m_timer;
+	std::shared_ptr<interruptController> m_interruptController;
 	std::shared_ptr<emulatorClock> m_clock;
 
 	std::unique_ptr<mainMenu> m_menu;

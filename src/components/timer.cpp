@@ -4,12 +4,10 @@
 
 #include "timer.h"
 
-#include "cpu/cpu.h"
-
-void timer::init(std::shared_ptr<cpu> cpuPt)
+void timer::init(std::shared_ptr<IInterruptSink> interruptSink)
 {
 	div = 0xAC00;
-	m_cpu = cpuPt;
+	m_interruptSink = interruptSink;
 }
 
 void timer::tick()
@@ -46,12 +44,15 @@ void timer::tick()
 
 	if (update && (tac & (1 << 2)))
 	{
-		tima++;
 		if (tima == 0xFF)
 		{
+			//TIMA overflow: reload from TMA and request the timer interrupt.
 			tima = tma;
 
-			m_cpu.lock()->requestInterrupt(INT_TIMER);
+			if (auto sink = m_interruptSink.lock())
+			{
+				sink->raise(INT_TIMER);
+			}
 		}
 		else
 		{
@@ -79,6 +80,9 @@ uint8_t timer::read(uint16_t address)
 		{
 			return tac;
 		}
+		default:
+			LOG_ERROR("Unrecognised timer write at address: {:04X}", address);
+			return 0xff;
 	}
 }
 

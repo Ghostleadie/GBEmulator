@@ -4,7 +4,9 @@
 
 #ifndef GAMEBOYEMULATOR_CPU_H
 #define GAMEBOYEMULATOR_CPU_H
-#include "../base/component.h"
+#include "../../interfaces/IComponentMessanger.h"
+#include "../../interfaces/InterruptSink.h"
+#include <vector>
 #include "opcodes.h"
 #include "../../Utility/SerialPortDebugger.h"
 #include "../emulatorClock.h"
@@ -71,20 +73,11 @@ struct flags
 	bool carry;
 };
 
-enum interruptTypes
-{
-	INT_VBLANK = 1,
-	INT_LCD_STAT = 2,
-	INT_TIMER = 4,
-	INT_SERIAL = 8,
-	INT_JOYPAD = 16
-};
-
 class cpu
 {
 public:
-	cpu(const std::shared_ptr<memorycomponentMessanger>& bus, const std::shared_ptr<emulatorClock>& clock)
-		: m_bus(bus), m_clock(clock) {};
+	cpu(const std::shared_ptr<memoryComponentMessanger>& bus, const std::shared_ptr<emulatorClock>& clock)
+		: m_bus(bus.get()), m_clock(clock) {};
 
 	void init();
 
@@ -142,10 +135,6 @@ public:
 
 	//getter and setters functions
 
-	uint8_t getIERegister() const;
-
-	void setIERegister(uint8_t value);
-
 	uint16_t getFetchedData() const { return fetchedData; }
 	inline void setFetchedData(const uint16_t value) { fetchedData = value; };
 
@@ -158,7 +147,7 @@ public:
 	uint16_t getMemoryDestination() const { return memoryDestination; }
 	inline void setMemoryDestination(const uint16_t value) { memoryDestination = value; }
 
-	std::weak_ptr<memorycomponentMessanger> getBus() const { return m_bus; }
+	memoryComponentMessanger* getBus() const { return m_bus; }
 
 	std::shared_ptr<emulatorClock> getClock() const { return m_clock; }
 
@@ -188,9 +177,6 @@ public:
 	void setEnablingIME(const bool value) { enablingIME = value; }
 	bool getEnablingIME() const { return enablingIME; }
 
-	void setInterruptFlags(const uint8_t value) { interruptFlags = value; }
-	uint8_t getInterruptFlags() const { return interruptFlags; }
-
 	std::vector<std::string> getOpcodesHistory() const { return opcodesHistory; }
 
 	// utility functions
@@ -204,7 +190,9 @@ private:
 	// instruction located at `pc` (must be called before fetchOpcode()).
 	void traceInstruction(uint16_t pc);
 
-	std::shared_ptr<memorycomponentMessanger> m_bus;
+	// Non-owning: the emulator owns the bus and outlives the cpu (the
+	// emulation thread is joined before teardown).
+	memoryComponentMessanger* m_bus = nullptr;
 	std::shared_ptr<emulatorClock> m_clock;
 	std::vector<std::string> opcodesHistory;
 	bool steppingMode = false;
@@ -218,9 +206,7 @@ private:
 	uint16_t memoryDestination;
 	bool destinationIsMemory;
 	bool masterInterruptEnabled;
-	uint8_t interruptEnableRegister;
 	bool enablingIME;
-	uint8_t interruptFlags;
 	SerialPortDebugger m_serialDebugger;
 };
 

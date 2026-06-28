@@ -7,7 +7,6 @@
 #include <iostream>
 
 #include "cpu.h"
-#include "../../emulator.h"
 #include "../../components/bus.h"
 #include "../../Utility/utility.h"
 #include <unordered_map>
@@ -98,7 +97,7 @@ void CbCommand::execute(cpu& m_cpu)
 	uint8_t bit = (m_cpu.getFetchedData() >> 3) & 0b111;
 	if (cbOp.reg == RT_HL)
 	{
-		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
+		m_cpu.getBus()->write(m_cpu.readRegister(RT_HL), value);
 	}
 
 	m_cpu.getClock()->cycles(1);
@@ -212,7 +211,7 @@ void CbCommand::execute(cpu& m_cpu)
 		const bool operandIsMemHL = (cbOp.reg == RT_HL);
 
 		if (operandIsMemHL) {
-			value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
+			value = m_cpu.getBus()->read(m_cpu.readRegister(RT_HL));
 		} else {
 			value = static_cast<uint8_t>(m_cpu.readRegister(cbOp.reg));
 		}
@@ -226,7 +225,7 @@ void CbCommand::execute(cpu& m_cpu)
 
 		auto writeBack = [&](uint8_t v) {
 			if (operandIsMemHL) {
-				m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), v);
+				m_cpu.getBus()->write(m_cpu.readRegister(RT_HL), v);
 			} else {
 				m_cpu.writeRegister(cbOp.reg, v);
 			}
@@ -364,8 +363,8 @@ void Dec8BitCommand::execute(cpu& m_cpu)
 	uint16_t value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1) - 1;
 
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
-		value = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL)) - 1;
-		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
+		value = m_cpu.getBus()->read(m_cpu.readRegister(RT_HL)) - 1;
+		m_cpu.getBus()->write(m_cpu.readRegister(RT_HL), value);
 	} else {
 		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, value);
 		value = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
@@ -398,9 +397,9 @@ void Inc8BitCommand::execute(cpu& m_cpu)
 	uint16_t oldValue, value;
 
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR) {
-		oldValue = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
+		oldValue = m_cpu.getBus()->read(m_cpu.readRegister(RT_HL));
 		value = (oldValue + 1) & 0xFF;
-		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
+		m_cpu.getBus()->write(m_cpu.readRegister(RT_HL), value);
 	} else {
 		oldValue = m_cpu.readRegister(m_cpu.getCurrentOpcodeData().reg1);
 		value = (oldValue + 1) & 0xFF;
@@ -421,9 +420,9 @@ void Inc16BitCommand::execute(cpu& m_cpu)
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_HL && m_cpu.getCurrentOpcodeData().mode == AM_MR)
 	{
 		// Memory-mapped case
-		oldValue = m_cpu.getBus().lock()->read(m_cpu.readRegister(RT_HL));
+		oldValue = m_cpu.getBus()->read(m_cpu.readRegister(RT_HL));
 		value = (oldValue + 1) & 0xFF;
-		m_cpu.getBus().lock()->write(m_cpu.readRegister(RT_HL), value);
+		m_cpu.getBus()->write(m_cpu.readRegister(RT_HL), value);
 
 		int h = ((oldValue & 0x0F) + 1) > 0x0F;
 		m_cpu.setFlags(value == 0, 0, h, -1);
@@ -480,7 +479,7 @@ void Ld8BitCommand::execute(cpu& m_cpu)
 	//check if writing to memory or a register
 	if (m_cpu.getDestinationIsMemory()) {
 		
-		m_cpu.getBus().lock()->write(m_cpu.getMemoryDestination(), static_cast<uint8_t>(m_cpu.getFetchedData()));
+		m_cpu.getBus()->write(m_cpu.getMemoryDestination(), static_cast<uint8_t>(m_cpu.getFetchedData()));
 		
 		m_cpu.getClock()->cycles(1);
 
@@ -493,7 +492,7 @@ void Ld16BitCommand::execute(cpu& m_cpu)
 {
 	if (m_cpu.getDestinationIsMemory()) {
 		m_cpu.getClock()->cycles(1);
-		m_cpu.getBus().lock()->write16(m_cpu.getMemoryDestination(), m_cpu.getFetchedData());
+		m_cpu.getBus()->write16(m_cpu.getMemoryDestination(), m_cpu.getFetchedData());
 		m_cpu.getClock()->cycles(1);
 
 		return;
@@ -527,24 +526,24 @@ void LdhCommand::execute(cpu& m_cpu)
 	// For 0xF0: LDH A,(a8) - load from memory to A
 	if (m_cpu.getCurrentOpcode() == 0xF0) {
 		// Load from memory to A
-		const uint8_t v = m_cpu.getBus().lock()->read(addr);
+		const uint8_t v = m_cpu.getBus()->read(addr);
 		m_cpu.writeRegister(RT_A, v);
 	}
 	else
 	{
 		// Store A to memory
-		m_cpu.getBus().lock()->write(addr, m_cpu.getRegisters()->a);
+		m_cpu.getBus()->write(addr, m_cpu.getRegisters()->a);
 	}*/
 
-	if (m_cpu.getPC() == 0xCB92)
+	/*if (m_cpu.getPC() == 0xCB92)
 	{
 		LOG_INFO("LDH");
-	}
+	}*/
 
 	if (m_cpu.getCurrentOpcodeData().reg1 == RT_A) {
-		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, m_cpu.getBus().lock()->read(0xFF00 | m_cpu.getFetchedData()));
+		m_cpu.writeRegister(m_cpu.getCurrentOpcodeData().reg1, m_cpu.getBus()->read(0xFF00 | m_cpu.getFetchedData()));
 	} else {
-		m_cpu.getBus().lock()->write(m_cpu.getMemoryDestination(), m_cpu.getRegisters()->a);
+		m_cpu.getBus()->write(m_cpu.getMemoryDestination(), m_cpu.getRegisters()->a);
 	}
 
 
@@ -730,7 +729,7 @@ void ScfCommand::execute(cpu& m_cpu)
 void StopCommand::execute(cpu& m_cpu)
 {
 	// Read and discard the next byte (part of STOP instruction format)
-	m_cpu.getBus().lock()->read(m_cpu.getRegisters()->pc);
+	m_cpu.getBus()->read(m_cpu.getRegisters()->pc);
 	m_cpu.getRegisters()->pc++;
 
 	// Set CPU to stopped state (you may need to add this method to cpu class)

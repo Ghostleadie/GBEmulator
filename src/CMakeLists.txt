@@ -3,8 +3,6 @@
 add_executable(GameBoyEmulator main.cpp
         log/Log.cpp
         log/Log.cpp
-        Components/base/component.cpp
-        Components/base/component.h
         Emulator.cpp
         Emulator.h
         UI/debugUI.cpp
@@ -13,8 +11,7 @@ add_executable(GameBoyEmulator main.cpp
         UI/mainMenu.h
         UI/pauseMenu.cpp
         UI/pauseMenu.h
-        Components/base/componentMessanger.cpp
-        Components/base/componentMessanger.h
+        interfaces/IComponentMessanger.h
         Components/cpu/cpu.cpp
         Components/cpu/cpu.h
         Components/cartridgeLoader.cpp
@@ -31,10 +28,7 @@ add_executable(GameBoyEmulator main.cpp
         Components/cpu/opcodes.cpp
         Components/cpu/opcodes.h
         Components/cpu/opcodes.h
-        interfaces/ICPUDebug.h
-        interfaces/IBusDebug.h
         interfaces/ICartridgeDebug.h
-        interfaces/IDebugObserver.h
         UI/debugpanels/cartridgedebugUI.cpp
         UI/debugpanels/cartridgedebugUI.h
         UI/debugpanels/busDebugUI.cpp
@@ -49,9 +43,19 @@ add_executable(GameBoyEmulator main.cpp
         interfaces/IClock.h
         components/emulatorClock.cpp
         components/emulatorClock.h
+        components/interruptController.cpp
+        components/interruptController.h
+        interfaces/InterruptSink.h
 )
 
 target_precompile_headers(GameBoyEmulator PUBLIC pch.h)
+
+# Treat "missing return value" as a hard error so UB fall-through can't compile.
+if (MSVC)
+    target_compile_options(GameBoyEmulator PRIVATE /we4715 /we4716)
+else()
+    target_compile_options(GameBoyEmulator PRIVATE -Werror=return-type)
+endif()
 
 target_link_libraries(GameBoyEmulator PRIVATE
     imgui

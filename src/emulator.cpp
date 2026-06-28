@@ -10,6 +10,7 @@
 #include "components/ppu.h"
 #include "components/timer.h"
 #include "components/cpu/cpu.h"
+#include "components/interruptController.h"
 #include "SDL3/SDL_timer.h"
 
 uint64_t emulator::ticks = 0;
@@ -24,15 +25,16 @@ void emulator::initalizeEmulator()
     m_cartridge = std::make_shared<cartridgeLoader>();
 	m_joypad = std::make_shared<joypad>();
 	m_ppu = std::make_shared<ppu>();
+	m_interruptController = std::make_shared<interruptController>();
 
-	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer, m_cpu);
+	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer, m_cpu, m_interruptController);
 
 	m_debugUI = std::make_unique<debugUI>(m_cartridge, m_cpu, m_bus);
 	m_menu = std::make_unique<mainMenu>();
 
 	m_menu->init();
 	m_cpu->init();
-	m_timer->init(m_cpu);
+	m_timer->init(m_interruptController);
 
 	//m_clock.init(m_timer);
 }

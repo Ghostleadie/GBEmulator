@@ -6,7 +6,7 @@
 #define GAMEBOYEMULATOR_SERIALPORTDEBUGGER_H
 
 
-#include "../components/base/componentMessanger.h"
+#include "../interfaces/IComponentMessanger.h"
 
 class bus;
 
@@ -16,7 +16,7 @@ class SerialPortDebugger {
 public:
 	SerialPortDebugger();
 
-	bool update(memorycomponentMessanger& m_bus);
+	bool update(memoryComponentMessanger& m_bus);
 	void print();
 	void clear();
 

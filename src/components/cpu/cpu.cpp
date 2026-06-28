@@ -5,7 +5,6 @@
 #include "cpu.h"
 #include "../bus.h"
 #include <cstdint>
-#include "../../emulator.h"
 #include "../../Utility/SerialPortDebugger.h"
 #include "../../Utility/utility.h"
 
@@ -28,8 +27,6 @@ void cpu::init()
 	registers.l = 0x4D;
 	registers.sp = 0xFFFE;
 
-	interruptEnableRegister = 0;
-	interruptFlags = 0;
 	masterInterruptEnabled = false;
 	enablingIME = false;
 
@@ -43,6 +40,7 @@ void cpu::init()
 void cpu::fetchOpcode()
 {
 	currentOpcode = m_bus->read(registers.pc++);
+	getClock()->cycles(1); // the opcode fetch is itself a 1 M-cycle memory read
 	currentOpcodeData = getOpcode(currentOpcode);
 }
 
@@ -368,7 +366,7 @@ void cpu::emulateCycle()
 		}
 		else
 		{
-			if (m_serialDebugger.update(*m_bus.get()))
+			if (m_serialDebugger.update(*m_bus))
 			{
 				m_serialDebugger.print();
 			}
@@ -402,7 +400,7 @@ void cpu::emulateCycle()
 	{
 		getClock()->cycles(1);
 
-		if (interruptFlags)
+		if (m_bus->read(0xFF0F))
 		{
 			halted = false;
 		}
@@ -481,7 +479,7 @@ void cpu::handleInterrupts()
 {
 	if (interruptCheck(0x40, INT_VBLANK))
 	{
-		LOG_TRACE("INT_BLANK interrupt");
+		LOG_TRACE("INT_VBLANK interrupt");
 		return;
 	}
 	if (interruptCheck(0x48, INT_LCD_STAT))
@@ -496,7 +494,6 @@ void cpu::handleInterrupts()
 	}
 	if (interruptCheck(0x58, INT_SERIAL))
 	{
-
 		LOG_TRACE("INT_SERIAL interrupt");
 		return;
 	}
@@ -515,10 +512,12 @@ void cpu::handleInterrupt(uint16_t address)
 
 bool cpu::interruptCheck(uint16_t address, interruptTypes type)
 {
-	if (interruptFlags & type && interruptEnableRegister & type)
+	const uint8_t interruptFlags = m_bus->read(0xFF0F);
+	const uint8_t interruptEnable = m_bus->read(0xFFFF);
+	if (interruptFlags & type && interruptEnable & type)
 	{
 		handleInterrupt(address);
-		interruptFlags &= ~type;
+		m_bus->write(0xFF0F, static_cast<uint8_t>(interruptFlags & ~type));
 		halted = false;
 		masterInterruptEnabled = false;
 		return true;
@@ -528,17 +527,7 @@ bool cpu::interruptCheck(uint16_t address, interruptTypes type)
 
 void cpu::requestInterrupt(interruptTypes type)
 {
-	interruptFlags |= type;
-}
-
-uint8_t cpu::getIERegister() const
-{
-	return interruptEnableRegister;
-}
-
-void cpu::setIERegister(const uint8_t value)
-{
-	interruptEnableRegister = value;
+	m_bus->write(0xFF0F, static_cast<uint8_t>(m_bus->read(0xFF0F) | type));
 }
 
 opcode cpu::getCurrentOpcodeData() const

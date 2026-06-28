@@ -4,16 +4,16 @@
 
 #ifndef GAMEBOYEMULATOR_JOYPAD_H
 #define GAMEBOYEMULATOR_JOYPAD_H
-#include "base/component.h"
+#include "../interfaces/IComponentMessanger.h"
 
-class joypad : public memoryComponent
+class joypad : public memoryComponentMessanger
 {
 public:
 	// Read a byte from a device-local address (offset from base).
-	uint8_t read(uint16_t address);
+	uint8_t read(uint16_t address) override;
 
 	// Write a byte to a device-local address (offset from base).
-	void write(uint16_t address, uint8_t value);
+	void write(uint16_t address, uint8_t value) override;
 };
 
 

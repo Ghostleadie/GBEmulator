@@ -4,17 +4,16 @@
 
 #ifndef GAMEBOYEMULATOR_TIMER_H
 #define GAMEBOYEMULATOR_TIMER_H
-#include "base/component.h"
+#include "../interfaces/IComponentMessanger.h"
+#include "../interfaces/InterruptSink.h"
 
-class cpu;
-
-class timer : public memoryComponent
+class timer : public memoryComponentMessanger
 {
 public:
 	timer() = default;
 	~timer() override = default;
 
-	void init(std::shared_ptr<cpu> cpuPt);
+	void init(std::shared_ptr<IInterruptSink> interruptSink);
 	void tick();
 
 	// Read a byte from a device-local address (offset from base).
@@ -29,7 +28,7 @@ private:
 	uint8_t tma;
 	uint8_t tac;
 
-	std::weak_ptr<cpu> m_cpu;
+	std::weak_ptr<IInterruptSink> m_interruptSink;
 };
 
 

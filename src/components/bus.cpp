@@ -6,16 +6,20 @@
 #include "../Utility/utility.h"
 #include "cartridgeLoader.h"
 #include "timer.h"
+#include "ppu.h"
+#include "joypad.h"
 #include "cpu/cpu.h"
+#include "interruptController.h"
 #include <cstring>
 
-void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer, const std::shared_ptr<cpu>& cpu)
+void bus::connectComponents(const std::shared_ptr<cartridgeLoader>& loader, const std::shared_ptr<joypad>& joypad, const std::shared_ptr<ppu>& ppu, const std::shared_ptr<timer>& timer, const std::shared_ptr<cpu>& cpu, const std::shared_ptr<interruptController>& interruptController)
 {
-	m_cartridge = loader;
-	m_joypad = joypad;
-	m_ppu = ppu;
-	m_timer = timer;
+	m_cartridge = loader.get();
+	m_joypad = joypad.get();
+	m_ppu = ppu.get();
+	m_timer = timer.get();
 	m_cpu = cpu;
+	m_interruptController = interruptController.get();
 }
 
 uint8_t bus::read(uint16_t address)
@@ -34,9 +38,8 @@ uint8_t bus::read(uint16_t address)
 	}
 	else if (address < 0xA000)
 	{
-		//Character map data
-		LOG_INFO("Bus Read from Character map data: {:04X}", address);
-		return 0;
+		//VRAM
+		return m_ppu->read(address);
 	}
 	else if (address < 0xC000)
 	{
@@ -50,16 +53,13 @@ uint8_t bus::read(uint16_t address)
 	}
 	else if (address < 0xFE00)
 	{
-		//reserved echo ram
-		LOG_INFO("Bus Read from echo ram: {:04X}", address);
-		return 0;
-
+		//echo ram mirrors WRAM (0xC000-0xDDFF)
+		return readWRam(address - 0x2000);
 	}
 	else if (address < 0xFEA0)
 	{
-		//DAM
-		LOG_INFO("Bus Read from DAM: {:04X}", address);
-		return 0x0;
+		//OAM
+		return m_ppu->read(address);
 	}
 	else if (address < 0xFF00)
 	{
@@ -77,23 +77,12 @@ uint8_t bus::read(uint16_t address)
 	{
 		//LOG_INFO("Bus Read from Interrupt enable register: {:04X}", address);
 		//CPU Interrupt enable register
-		return m_cpu.lock()->getIERegister();
+		return m_interruptController->read(0xFFFF);
 	}
 	else
 	{
-		if (utility::inRange(address, 0xC000, 0xCFFF))
-		{
-			return readWRam(address);
-		}
-		else if (utility::inRange(address, 0xFF80, 0xFFFE))
-		{
-			return readHRam(address);
-		}
-		else
-		{
-			LOG_ERROR("invalid memory read: {:04X}", address);
-			return 0;
-		}
+		//High RAM (0xFF80 - 0xFFFE)
+		return readHRam(address);
 	}
 	return 0;
 }
@@ -112,7 +101,7 @@ if (address == 0xFF01) // Serial data register
         {
             // Buffer full: keep the most recent half.
             const int keep = static_cast<int>(sizeof(m_serialOutput)) / 2;
-            memmove(m_serialOutput, m_serialOutput + (m_serialOutputLen - keep), keep);
+            memmove(m_serialOutput.data(), m_serialOutput.data() + (m_serialOutputLen - keep), keep);
             m_serialOutputLen = keep;
         }
         m_serialOutput[m_serialOutputLen++] = c;
@@ -164,8 +153,9 @@ if (address == 0xFF01) // Serial data register
 	}
 	else if (address < 0xA000)
 	{
-		//Character map data
-
+		//VRAM
+		m_ppu->write(address, value);
+		return;
 	}
 	else if (address < 0xC000)
 	{
@@ -180,14 +170,15 @@ if (address == 0xFF01) // Serial data register
 	}
 	else if (address < 0xFE00)
 	{
-		//reserved echo ram
-		LOG_ERROR("Trying to write into reserved memory");
+		//echo ram mirrors WRAM (0xC000-0xDDFF)
+		writeWRam(address - 0x2000, value);
 		return;
 	}
 	else if (address < 0xFEA0)
 	{
-		//DAM
-
+		//OAM
+		m_ppu->write(address, value);
+		return;
 	}
 	else if (address < 0xFF00)
 	{
@@ -208,7 +199,7 @@ if (address == 0xFF01) // Serial data register
 	else
 	{
 		//CPU Interrupt enable register (0xFFFF)
-		m_cpu.lock()->setIERegister(value);
+		m_interruptController->write(0xFFFF, value);
 	}
 }
 
@@ -253,6 +244,10 @@ void bus::writeHRam(uint16_t address, const uint8_t value)
 
 uint8_t bus::readIO(uint16_t address)
 {
+	if (address == 0xFF00)
+	{
+		return m_joypad->read(address);
+	}
 	if (address == 0xFF01)
 	{
 		return serialData[0];
@@ -269,20 +264,22 @@ uint8_t bus::readIO(uint16_t address)
 
 	if (address == 0xFF0F)
 	{
-		return m_cpu.lock()->getInterruptFlags();
+		return m_interruptController->read(0xFF0F);
 	}
 	if (address == 0xFF44)
 	{
 		return 0x90;
 	}
-	LOG_WARN("Trying to read from IO address other than 0xFF01 & 0xFF02: {:02X}", address);
+
+	return 0xFF;
 }
 
 void bus::writeIO(uint16_t address, uint8_t value)
 {
 	if(address == 0xFF00)
 	{
-		LOG_INFO("joypad write: 0x{:02X}", value);
+		m_joypad->write(address, value);
+		return;
 	}
 	if (address == 0xFF01)
 	{
@@ -346,7 +343,7 @@ void bus::writeIO(uint16_t address, uint8_t value)
 
 	if (address == 0xFF0F)
 	{
-		m_cpu.lock()->setInterruptFlags(value);
+		m_interruptController->write(0xFF0F, value);
 		return;
 	}
 }
