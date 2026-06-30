@@ -19,13 +19,14 @@ void emulator::initalizeEmulator()
 {
 	m_bus = std::make_shared<bus>();
 	m_timer = std::make_shared<timer>();
-	m_ppu = std::make_shared<ppu>();
+	m_interruptController = std::make_shared<interruptController>();
+	m_ppu = std::make_shared<ppu>(m_interruptController);
 	m_clock = std::make_shared<emulatorClock>();
     m_cpu = std::make_shared<cpu>(m_bus, m_clock);
 
     m_cartridge = std::make_shared<cartridgeLoader>();
 	m_joypad = std::make_shared<joypad>();
-	m_interruptController = std::make_shared<interruptController>();
+
 
 	m_bus->connectComponents(m_cartridge, m_joypad, m_ppu, m_timer, m_cpu, m_interruptController);
 
@@ -95,57 +96,6 @@ void emulator::runEmulator()
 	{
 		m_debugUI->UpdateUIPanels();
 	}
-
-	/*switch (state)
-	{
-		case EMU_STATE_MENU:
-		{
-			if (mainmenuActive == true)
-			{
-				mainmenuActive = m_menu->openMainMenu(filepath);
-			}
-			if (!filepath.empty())
-			{
-				state = EMU_STATE_RUNNING;
-			}
-			break;
-		}
-		case EMU_STATE_RUNNING:
-		{
-			if (romLoaded == false)
-			{
-				romLoaded = m_cartridge->loadCartridge(filepath);
-			}
-
-			// Game Boy runs at ~4.194 MHz
-			// At 60 FPS, that's ~69,905 cycles per frame
-			static const uint32_t CYCLES_PER_FRAME = 69905;
-
-			uint32_t cyclesThisFrame = 0;
-			while (cyclesThisFrame < CYCLES_PER_FRAME)
-			{
-				uint32_t cyclesBefore = m_clock->getTicks();
-				m_cpu->emulateCycle();
-				cyclesThisFrame += (m_clock->getTicks() - cyclesBefore);
-			}
-
-			break;
-		}
-		case EMU_STATE_PAUSED:
-		{
-			SDL_Delay(10);
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
-
-	if (debugUIActive)
-	{
-		m_debugUI->UpdateUIPanels();
-	}*/
 }
 
 void emulator::startEmulation()
