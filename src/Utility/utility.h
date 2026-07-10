@@ -6,6 +6,8 @@
 #define GAMEBOYEMULATOR_UTILITY_H
 #include <cstdint>
 #include <string>
+#include <queue>
+#include "SDL3/SDL_timer.h"
 
 
 namespace utility {
@@ -47,6 +49,17 @@ namespace utility {
 	{
 		return (value & (1 << bit)) != 0;
 	};
+
+	inline uint64_t GetTicks(){return SDL_GetTicks();}
+
+	inline void Delay(const uint32_t ms) {SDL_Delay(ms);}
+
+	template <typename T>
+	inline void ClearQueue(std::queue<T>& queue)
+	{
+		std::queue<T> empty;
+		std::swap(queue, empty);
+	}
 }
 
 

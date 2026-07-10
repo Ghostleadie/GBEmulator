@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jack_ on 01/10/2025.
 //
 
@@ -9,15 +9,15 @@
 #include <string>
 #include <cstdint>
 #include <functional>
-#include "../src/components/base/component.h"
+#include "../src/interfaces/IComponentMessanger.h"
 
-class testMemory : public memorycomponentMessanger
+class testMemory : public IComponentMessanger
 {
 private:
 	std::array<uint8_t, 0x10000> MEM;
 
 public:
-	testMemory() : memorycomponentMessanger() {
+	testMemory() : IComponentMessanger() {
 		MEM.fill(0);
 	}
 

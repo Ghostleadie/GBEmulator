@@ -16,6 +16,7 @@
 #define LOG_TRACE(...)
 #define LOG_DEBUG(...)
 #define CARTRIDGE_INFO(...)
+#define CPU_TRACE(...)
 
 // Redirect emulator::cycles to our mock
 #define emulator emulator_mock

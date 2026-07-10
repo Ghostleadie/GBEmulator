@@ -7,6 +7,8 @@
 #include "../interfaces/IComponentMessanger.h"
 #include "../interfaces/IClocked.h"
 #include <array>
+#include <queue>
+#include "../interfaces/IInterruptSink.h"
 
 struct oam_dma
 {
@@ -34,6 +36,19 @@ struct oam_entry
 	*	CGB palette [CGB Mode Only]: Which of OBP0–7 to use
 	*/
 	uint8_t flags;
+};
+
+struct fifo_entry
+{
+	fifo_entry* next;
+	uint32_t value; // color value
+};
+
+struct pixelfifo
+{
+	fifo_entry* head;
+	fifo_entry* tail;
+	uint32_t size;
 };
 
 struct lcd {
@@ -70,9 +85,20 @@ enum StatFlags
 	SS_LYC = (1 << 6),
 };
 
+enum FIFOState
+{
+	FSTILE,
+	FSDATA0,
+	FSDATA1,
+	FSSLEEP,
+	FSPUSH
+};
+
 class ppu : public IComponentMessanger, public IClocked
 {
 public:
+	ppu(const std::shared_ptr<IInterruptSink>& interruptSink);
+
 	void init();
 
 	void connectBus(IComponentMessanger* bus) {m_bus = bus;}
@@ -92,13 +118,31 @@ public:
 	//LCD
 	void initLCD();
 	void updatePalette(uint8_t paletteData, uint8_t pal);
+
+	LCD_Mode lcdMode() const;
+
 	//LCD End
+
+	//pixel pipeline start
+
+	void pushPixel();
+
+	void process();
+
+	bool add();
+
+	void fetch();
+	//pixel pipeline end
 
 	//LCD States
 	void OAMMode();
 	void XFERMode();
 	void VBLANKMode();
 	void HBLANKMode();
+
+	void increment_ly();
+
+	void setLcdMode(LCD_Mode m);
 
 	void startDMA(uint8_t start);
 	bool isTransferringDMA() const {return dma.active;}
@@ -109,10 +153,11 @@ private:
 	std::array<oam_entry, 40> oamRAM = {};     // 0xFE00-0xFE9F (40 * 4 bytes)
 
 	uint32_t currentFrame = 0;
-	uint32_t lineTicks = 0;
 	std::array<uint32_t, 160*144> buffer = {};
 
-	lcd lcd = {};
+	std::weak_ptr<IInterruptSink> m_interruptSink;
+
+	lcd lcdData = {};
 
 	IComponentMessanger* m_bus = nullptr;
 
@@ -120,12 +165,29 @@ private:
 
 	oam_dma dma = {};
 	uint8_t m_dmaDots = 0;     // T-cycle divider so DMA steps once per M-cycle
-	uint16_t m_lineDots = 0;   // T-cycle counter within the current scanline (0-455)
+	uint16_t m_lineTick = 0;   // T-cycle counter within the current scanline (0-455)
 
 	static constexpr int LinesPerFrame = 154;
 	static constexpr int TicksPerLine = 456;
 	static constexpr int YRes = 144;
 	static constexpr int XRes = 160;
+
+	static constexpr uint32_t TargetFPS = 60;
+	uint32_t lastFrame = 0;
+	uint32_t startTimer = 0;
+	uint32_t frameCounter = 0;
+
+	std::queue<uint32_t> fifo;
+	FIFOState state;
+	uint8_t lineX{};
+	uint8_t pushedX{};
+	uint8_t fetchX{};
+	std::array<uint8_t,3> bgwFetchData = {};
+	std::array<uint8_t,6> fetchEntryData = {};
+	uint8_t mapX{};
+	uint8_t mapY{};
+	uint8_t tileY{};
+	uint8_t fifoX{};
 };
 
 
