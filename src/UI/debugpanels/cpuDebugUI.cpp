@@ -7,9 +7,13 @@
 #include "imgui.h"
 #include "../../components/cpu/cpu.h"
 
-void cpuDebugUI::updateUI(cpu& cpu)
+void cpuDebugUI::updateUI(cpu& cpu, bool* open)
 {
-	ImGui::Begin("CPU Debug");
+	if (!ImGui::Begin("CPU Debug", open))
+	{
+		ImGui::End();
+		return;
+	}
 	ImGui::Text("PC: %04X  SP: %04X", cpu.getPC(), cpu.getRegistersDebug().sp);
 	ImGui::Text("A: %02X  F: %02X  AF: %04X", cpu.getRegistersDebug().a, cpu.getRegistersDebug().f, cpu.getRegistersDebug().af);
 	ImGui::Text("B: %02X  C: %02X  BC: %04X", cpu.getRegistersDebug().b, cpu.getRegistersDebug().c, cpu.getRegistersDebug().bc);
@@ -44,13 +48,21 @@ void cpuDebugUI::updateUI(cpu& cpu)
 	}
 	ImGui::EndDisabled();
 
+	// Opcode history is opt-in: recording is off by default so normal play pays nothing. Ticking this
+	// arms the ring buffer; the list below then shows the most recent instructions (oldest first).
+	static bool recordHistory = false;
+	ImGui::Checkbox("Record Opcode History", &recordHistory);
+	if (cpu.getRecordOpcodeHistory() != recordHistory) {
+		cpu.setRecordOpcodeHistory(recordHistory);
+	}
+
 	const auto  draw_list_size = ImVec2(310, 260);
 
-	/*if (ImGui::BeginListBox("##opcode history", draw_list_size)) {
-		const auto& opcodes = cpu.getOpcodesHistory();
+	if (ImGui::BeginListBox("##opcode history", draw_list_size)) {
+		const std::vector<std::string> opcodes = cpu.getOpcodesHistory();
 		static int selected_idx = -1;
 
-		for (int n = 0; n < opcodes.size(); ++n) {
+		for (int n = 0; n < static_cast<int>(opcodes.size()); ++n) {
 			const bool is_selected = (selected_idx == n);
 
 			if (ImGui::Selectable(opcodes[n].c_str(), is_selected)) {
@@ -58,7 +70,7 @@ void cpuDebugUI::updateUI(cpu& cpu)
 			}
 
 			// Auto-scroll to the latest entry
-			if (n == opcodes.size() - 1) {
+			if (n == static_cast<int>(opcodes.size()) - 1) {
 				ImGui::SetScrollHereY(1.0f);
 			}
 
@@ -66,7 +78,7 @@ void cpuDebugUI::updateUI(cpu& cpu)
 				ImGui::SetItemDefaultFocus();
 			}
 		}
-		ImGui::EndListBox();*/
-	//}
+		ImGui::EndListBox();
+	}
 	ImGui::End();
 }

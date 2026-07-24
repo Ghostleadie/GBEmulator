@@ -15,13 +15,20 @@ public:
 	emulatorClock() = default;
 	~emulatorClock() override = default;
 
-	// Register a device to be ticked once per T-cycle. Non-owning: the emulator
-	// owns the devices and outlives the clock. Registration order = tick order.
+	/**
+	 * Registers a device to be ticked once per T-cycle.
+	 * @param device Non-owning pointer; the emulator owns the devices and outlives the clock. Registration order sets tick order.
+	 */
 	void addDevice(IClocked* device) { m_devices.push_back(device); }
 
-	void cycles(std::uint64_t cpuCycles) override; // cpuCycles = M-cycles
+	/**
+	 * Runs the master clock forward, ticking every registered device on each T-cycle.
+	 * @param cpuCycles Number of M-cycles to advance; each expands to 4 T-cycles (dots), so devices tick four times per M-cycle.
+	 */
+	void cycles(std::uint64_t cpuCycles) override;
 
-	uint64_t getTicks() const { return m_ticks; }  // T-cycle count since start
+	/** Returns the number of T-cycles ticked since start. */
+	uint64_t getTicks() const { return m_ticks; }
 private:
 	std::vector<IClocked*> m_devices;
 	std::uint64_t          m_ticks{0};

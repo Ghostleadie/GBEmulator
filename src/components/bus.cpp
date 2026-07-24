@@ -275,6 +275,12 @@ uint8_t bus::readIO(uint16_t address)
 		return m_interruptController->read(0xFF0F);
 	}
 
+	if (utility::inRange(address, 0xFF10, 0xFF3F))
+	{
+		//APU sound registers + wave RAM (null in headless builds)
+		return m_apu ? m_apu->read(address) : 0xFF;
+	}
+
 	if (utility::inRange(address, 0xFF40, 0xFF4B))
 	{
 		return m_ppu->read(address);
@@ -315,6 +321,16 @@ void bus::writeIO(uint16_t address, uint8_t value)
 	if (address == 0xFF0F)
 	{
 		m_interruptController->write(0xFF0F, value);
+		return;
+	}
+
+	if (utility::inRange(address, 0xFF10, 0xFF3F))
+	{
+		//APU sound registers + wave RAM (dropped in headless builds)
+		if (m_apu)
+		{
+			m_apu->write(address, value);
+		}
 		return;
 	}
 

@@ -13,7 +13,8 @@ class IClocked
 {
 public:
 	virtual ~IClocked() = default;
-	virtual void tick() = 0; // advance exactly one T-cycle
+	/** Advances this device by exactly one T-cycle (dot). */
+	virtual void tick() = 0;
 };
 
 #endif //GAMEBOYEMULATOR_ICLOCKED_H

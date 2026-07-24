@@ -11,6 +11,12 @@
 #include "../../Utility/utility.h"
 #include <unordered_map>
 
+// Scoped opcode enums; using enum keeps enumerators usable unqualified here.
+using enum opcodeType;
+using enum addressMode;
+using enum registryType;
+using enum conditionType;
+
 void AdcCommand::execute(cpu& m_cpu)
 {
 	LOG_TRACE("Running ADC Command");
@@ -234,17 +240,17 @@ void CbCommand::execute(cpu& m_cpu)
 		switch (cbOp.type)
 		{
 			case OP_BIT:
-				m_cpu.setFlags(!(value & (1u << bit)), 0, 1, -1);
+				m_cpu.setFlags(!utility::checkBit(value, bit), 0, 1, -1);
 				return;
 
 			case OP_RES:
-				value &= static_cast<uint8_t>(~(1u << bit));
+				value = utility::clearBit(value, bit);
 				writeBack(value);
 				return;
 
 			case OP_SET:
 				// BUGFIX: was `value |= ~(1 << bit)` which forces 0xFF
-				value |= static_cast<uint8_t>(1u << bit);
+				value = utility::setBit(value, bit);
 				writeBack(value);
 				return;
 

@@ -11,6 +11,9 @@ class IClock
 {
 public:
     virtual ~IClock() = default;
+    /** Advances the clock by the given number of elapsed CPU cycles.
+     * @param cpuCycles number of CPU cycles that have elapsed since the previous call.
+     */
     virtual void cycles(std::uint64_t cpuCycles) = 0;
 };
 

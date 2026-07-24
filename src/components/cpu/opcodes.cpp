@@ -6,6 +6,13 @@
 #include "opcodeFunctions.h"
 #include "cpu.h"
 
+// The opcode enums are scoped (enum class) for type safety. using enum lets the
+// table below keep naming enumerators unqualified without weakening that.
+using enum opcodeType;
+using enum addressMode;
+using enum registryType;
+using enum conditionType;
+
  const std::unordered_map<uint8_t, opcode> opcodeTable =
 	{
 	    // 0x0X
@@ -581,7 +588,6 @@ const std::unordered_map<uint8_t, extendedCBOpcode> cbOpcodeTable =
 
 
 
-// Initialize execute functions after map creation
 void initializeOpcodeExecution() {
 	static bool initialized = false;
 	if (initialized) return;
@@ -609,4 +615,10 @@ extendedCBOpcode getCBOpcode(const uint8_t opcode_value)
 {
 	const auto it = cbOpcodeTable.find(opcode_value);
 	return (it != cbOpcodeTable.end()) ? it->second : extendedCBOpcode();
+}
+
+const std::string& getOpcodeName(const uint8_t opcode_value)
+{
+	const auto it = opcodeTable.find(opcode_value);
+	return (it != opcodeTable.end()) ? it->second.name : opcodeTable.at(0).name; // fallback to NOP, matching getOpcode
 }

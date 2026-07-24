@@ -7,13 +7,13 @@
 #include <cstring>
 
 
-// Displays the serial output captured by the bus (read-only). The bus records
-// every write to 0xFF01, so this shows the complete stream without racing the
-// CPU for the 0xFF02 transfer the way the old panel did (which stole bytes and
-// usually showed nothing).
-void busDebugUI::updateUI(bus& m_bus)
+void busDebugUI::updateUI(bus& m_bus, bool* open)
 {
-	ImGui::Begin("Bus Debug");
+	if (!ImGui::Begin("Bus Debug", open))
+	{
+		ImGui::End();
+		return;
+	}
 	ImGui::Text("Serial Output");
 	ImGui::Separator();
 

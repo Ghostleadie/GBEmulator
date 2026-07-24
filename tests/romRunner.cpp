@@ -48,12 +48,13 @@ int main(int argc, char** argv)
 	auto cpuPtr    = std::make_shared<cpu>(busPtr, clockPtr);
 	auto cartPtr   = std::make_shared<cartridgeLoader>();
 	auto joypadPtr = std::make_shared<joypad>();
-	auto ppuPtr    = std::make_shared<ppu>();
+	auto ppuPtr    = std::make_shared<ppu>(irqPtr);
 
 	busPtr->connectComponents(cartPtr, joypadPtr, ppuPtr, timerPtr, cpuPtr, irqPtr);
 	ppuPtr->connectBus(busPtr.get());
 	cpuPtr->init();
 	timerPtr->init(irqPtr);
+	ppuPtr->init();
 	clockPtr->addDevice(timerPtr.get());
 	clockPtr->addDevice(ppuPtr.get());
 

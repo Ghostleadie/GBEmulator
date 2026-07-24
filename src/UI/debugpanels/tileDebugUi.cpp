@@ -36,11 +36,11 @@ tileDebugUI::~tileDebugUI()
 	if (m_texture) SDL_DestroyTexture(m_texture);
 }
 
-void tileDebugUI::updateUI(bus& busRef)
+void tileDebugUI::updateUI(bus& busRef, bool* open)
 {
 	// Open the window first so the decode + texture upload are skipped entirely
 	// when the panel is collapsed or hidden.
-	if (!ImGui::Begin("VRAM Tiles"))
+	if (!ImGui::Begin("VRAM Tiles", open))
 	{
 		ImGui::End();
 		return;

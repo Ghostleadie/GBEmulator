@@ -3,6 +3,7 @@
 //
 
 #include "timer.h"
+#include "../Utility/utility.h"
 
 void timer::init(std::shared_ptr<IInterruptSink> interruptSink)
 {
@@ -22,27 +23,27 @@ void timer::tick()
 	{
 		case 0b00:
 		{
-			update = ((oldDiv & (1 << 9)) && !(div & (1 << 9)));
+			update = (utility::checkBit(oldDiv, 9) && !utility::checkBit(div, 9));
 			break;
 		}
 		case 0b01:
 		{
-			update = ((oldDiv & (1 << 3)) && !(div & (1 << 3)));
+			update = (utility::checkBit(oldDiv, 3) && !utility::checkBit(div, 3));
 			break;
 		}
 		case 0b10:
 		{
-			update = ((oldDiv & (1 << 5)) && !(div & (1 << 5)));
+			update = (utility::checkBit(oldDiv, 5) && !utility::checkBit(div, 5));
 			break;
 		}
 		case 0b11:
 		{
-			update = ((oldDiv & (1 << 7)) && !(div & (1 << 7)));
+			update = (utility::checkBit(oldDiv, 7) && !utility::checkBit(div, 7));
 			break;
 		}
 	}
 
-	if (update && (tac & (1 << 2)))
+	if (update && utility::checkBit(tac, 2))
 	{
 		if (tima == 0xFF)
 		{
@@ -51,7 +52,7 @@ void timer::tick()
 
 			if (auto sink = m_interruptSink.lock())
 			{
-				sink->raise(INT_TIMER);
+				sink->raise(interruptTypes::INT_TIMER);
 			}
 		}
 		else

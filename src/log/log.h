@@ -13,10 +13,17 @@
 class log
 {
 public:
+	/** Initialises the logging system: builds the emulator, cartridge and CPU-trace loggers and their sinks.
+	 * Call once at start-up before any logging macro is used. The emulator logger writes to the console and a
+	 * timestamped log_YYYYMMDD_HHMMSS.txt file; the trace logger writes raw, prefix-free lines to trace.txt.
+	 */
 	static void Init();
 
+	/** Returns the shared emulator logger (console + timestamped file). */
 	inline static std::shared_ptr<spdlog::logger>& GetEmulatorLogger() { return m_emulatorLogger;}
+	/** Returns the shared cartridge logger. */
 	inline static std::shared_ptr<spdlog::logger>& GetCartridgeLogger() { return m_cartridgeLogger; }
+	/** Returns the shared CPU instruction trace logger (raw lines to trace.txt). */
 	inline static std::shared_ptr<spdlog::logger>& GetTraceLogger() { return m_traceLogger; }
 private:
 	static std::shared_ptr<spdlog::logger> m_emulatorLogger;

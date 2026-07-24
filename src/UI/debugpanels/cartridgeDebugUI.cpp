@@ -6,9 +6,13 @@
 #include "../../components/cartridgeLoader.h"
 #include "imgui.h"
 
-void cartridgeDebugUI::updateUI(const cartridgeContext& ctx)
+void cartridgeDebugUI::updateUI(const cartridgeContext& ctx, bool* open)
 {
-	ImGui::Begin("Rom Debug");
+	if (!ImGui::Begin("Rom Debug", open))
+	{
+		ImGui::End();
+		return;
+	}
 	ImGui::Text("File: %s", ctx.filename);
 	ImGui::Text("Size: %d bytes", ctx.romSize);
 	if (ctx.header)

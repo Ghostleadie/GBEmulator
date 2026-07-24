@@ -5,6 +5,7 @@ Binaries/
 /roms
 bin/
 build/
+cmake-build-*/
 /.vs
 .idea/
 CMakeSettings.json

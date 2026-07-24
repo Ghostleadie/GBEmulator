@@ -13,6 +13,9 @@ class ICartridgeDebug
 public:
 	virtual ~ICartridgeDebug() = default;
 
+	/** Returns a read-only view of the cartridge's current state for debugging.
+	 * @return const reference to the implementer's live cartridgeContext (no copy; valid while the cartridge lives).
+	 */
 	virtual const cartridgeContext& peekCartridgeContext() const = 0;
 };
 

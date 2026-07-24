@@ -20,11 +20,23 @@ public:
 	interruptController() = default;
 	~interruptController() override = default;
 
-	// IInterruptSink: set the pending bit for an interrupt source.
+	/**
+	 * Sets the pending bit for an interrupt source in IF (0xFF0F).
+	 * @param t Interrupt source whose flag bit is OR'd into the interrupt-flag register.
+	 */
 	void raise(interruptTypes t) override;
 
-	// device interface: 0xFF0F = IF, 0xFFFF = IE (global address).
+	/**
+	 * Reads an interrupt register by its global address: 0xFF0F returns IF, 0xFFFF returns IE.
+	 * @param address Global address, either 0xFF0F (IF) or 0xFFFF (IE).
+	 * @return The selected register, or 0xFF for any other address.
+	 */
 	uint8_t read(uint16_t address) override;
+	/**
+	 * Writes an interrupt register by its global address: 0xFF0F sets IF, 0xFFFF sets IE.
+	 * @param address Global address, either 0xFF0F (IF) or 0xFFFF (IE).
+	 * @param value Byte to store; any other address is ignored.
+	 */
 	void write(uint16_t address, uint8_t value) override;
 
 private:

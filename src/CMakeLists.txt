@@ -23,6 +23,8 @@ add_executable(GameBoyEmulator main.cpp
         Components/ppu.h
         Components/timer.cpp
         Components/timer.h
+        Components/apu.cpp
+        Components/apu.h
         Components/joypad.cpp
         Components/joypad.h
         Components/cpu/opcodes.cpp
@@ -40,6 +42,16 @@ add_executable(GameBoyEmulator main.cpp
         components/cpu/opcodeFunctions.h
         Utility/SerialPortDebugger.h
         Utility/SerialPortDebugger.cpp
+        Utility/settings.h
+        Utility/settings.cpp
+        Utility/inputBindings.h
+        Utility/inputBindings.cpp
+        UI/settingsUI.h
+        UI/settingsUI.cpp
+        UI/screen.h
+        UI/screen.cpp
+        UI/inputHandler.h
+        UI/inputHandler.cpp
         interfaces/IClock.h
         interfaces/IClocked.h
         components/emulatorClock.cpp
